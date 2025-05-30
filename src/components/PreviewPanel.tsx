@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { CodeFormat } from '../pages/Index';
 import { Maximize2, RefreshCw, Eye, AlertCircle } from 'lucide-react';
@@ -214,9 +213,9 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ code, format }) => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-screen flex flex-col">
       {/* 预览面板头部 */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
         <div className="flex items-center space-x-3">
           <Eye className="w-4 h-4 text-gray-600" />
           <span className="text-sm font-semibold text-gray-700">
@@ -253,7 +252,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ code, format }) => {
       </div>
       
       {/* 预览内容区域 */}
-      <div className="flex-1 relative bg-white">
+      <div className="flex-1 relative bg-white min-h-0">
         {error ? (
           <div className="h-full flex items-center justify-center">
             <div className="text-center">
@@ -276,7 +275,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ code, format }) => {
         ) : (
           <iframe
             ref={iframeRef}
-            className="preview-panel"
+            className="w-full h-full border-0"
             title="代码预览"
             sandbox="allow-scripts allow-same-origin"
           />
@@ -294,7 +293,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ code, format }) => {
       </div>
       
       {/* 预览面板底部状态栏 */}
-      <div className="p-2 bg-gray-50 text-xs text-gray-500 flex items-center justify-between border-t border-gray-200">
+      <div className="p-2 bg-gray-50 text-xs text-gray-500 flex items-center justify-between border-t border-gray-200 flex-shrink-0">
         <div className="flex items-center space-x-4">
           <span>自动刷新</span>
           <span>安全沙箱</span>
