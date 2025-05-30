@@ -16,6 +16,12 @@ const MYSQL_CONFIG = {
   port: 3306,
 }
 
+// 清理 UTF-8MB4 字符的函数
+function sanitizeForMySQL(text: string): string {
+  // 移除或替换 4 字节 UTF-8 字符（如 emoji）
+  return text.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '');
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -27,6 +33,9 @@ serve(async (req) => {
 
     console.log('Creating share with format:', format);
 
+    // 清理代码中的问题字符
+    const sanitizedCode = sanitizeForMySQL(code);
+    
     // 生成唯一 ID
     const shareId = generateId();
     
@@ -35,6 +44,8 @@ serve(async (req) => {
     const createdAt = Date.now();
     
     console.log('Generated share ID:', shareId);
+    console.log('Original code length:', code.length);
+    console.log('Sanitized code length:', sanitizedCode.length);
 
     // 创建 MySQL 连接
     const mysql = await import('https://deno.land/x/mysql@v2.12.1/mod.ts');
@@ -45,7 +56,7 @@ serve(async (req) => {
       await client.execute(`
         INSERT INTO pages (id, html_content, created_at, password, is_protected, code_type)
         VALUES (?, ?, ?, ?, ?, ?)
-      `, [shareId, code, createdAt, password || null, isProtected, format]);
+      `, [shareId, sanitizedCode, createdAt, password || null, isProtected, format]);
 
       console.log('Successfully inserted share into database');
 
