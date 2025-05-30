@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Search, Filter, Eye, Calendar, Code2 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Plus, Search, Filter, Eye, Calendar, Code2, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Gallery = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFormat, setSelectedFormat] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('latest');
 
   // 模拟数据 - 实际项目中这里会从数据库获取
   const mockWorks = [
@@ -74,7 +74,7 @@ const Gallery = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
+      {/* 精简的顶部导航栏 */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -89,43 +89,51 @@ const Gallery = () => {
               </div>
             </div>
 
-            {/* 搜索框 */}
-            <div className="flex-1 max-w-2xl mx-8">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="搜索作品标题或描述..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4"
-                />
+            {/* 右侧操作区 */}
+            <div className="flex items-center space-x-4">
+              {/* 快速创建按钮 */}
+              <Button 
+                onClick={() => navigate('/editor')}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                快速创建
+              </Button>
+
+              {/* 用户头像/登录按钮 */}
+              <div className="flex items-center">
+                <Avatar className="w-8 h-8 cursor-pointer">
+                  <AvatarImage src="" />
+                  <AvatarFallback className="bg-gray-200">
+                    <User className="w-4 h-4 text-gray-600" />
+                  </AvatarFallback>
+                </Avatar>
               </div>
             </div>
-
-            {/* 快速创建按钮 */}
-            <Button 
-              onClick={() => navigate('/editor')}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              快速创建
-            </Button>
           </div>
         </div>
       </header>
 
       {/* 主要内容区域 */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 统计信息和筛选栏 */}
+        {/* 搜索和筛选区域 */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">作品展示</h2>
-              <p className="text-gray-600 mt-1">
-                共 {filteredWorks.length} 个作品
-                {searchQuery && ` · 搜索 "${searchQuery}"`}
-                {selectedFormat !== 'all' && ` · ${formats.find(f => f.value === selectedFormat)?.label}`}
-              </p>
+          {/* 页面标题 */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">作品展示</h2>
+            <p className="text-gray-600 mt-1">发现和分享优秀的代码作品</p>
+          </div>
+
+          {/* 搜索框 */}
+          <div className="mb-6">
+            <div className="relative max-w-2xl">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Input
+                placeholder="搜索作品标题或描述..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-3 text-base"
+              />
             </div>
           </div>
 
@@ -149,6 +157,15 @@ const Gallery = () => {
                 </Badge>
               ))}
             </div>
+          </div>
+
+          {/* 结果统计 */}
+          <div className="mb-6">
+            <p className="text-gray-600">
+              共 {filteredWorks.length} 个作品
+              {searchQuery && ` · 搜索 "${searchQuery}"`}
+              {selectedFormat !== 'all' && ` · ${formats.find(f => f.value === selectedFormat)?.label}`}
+            </p>
           </div>
         </div>
 
