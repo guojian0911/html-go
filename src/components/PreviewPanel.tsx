@@ -213,7 +213,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ code, format }) => {
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* 预览面板头部 */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
         <div className="flex items-center space-x-3">
@@ -252,7 +252,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ code, format }) => {
       </div>
       
       {/* 预览内容区域 */}
-      <div className="flex-1 relative bg-white min-h-0">
+      <div className="flex-1 relative bg-white overflow-hidden">
         {error ? (
           <div className="h-full flex items-center justify-center">
             <div className="text-center">

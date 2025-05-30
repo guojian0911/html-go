@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import TopToolbar from '../components/TopToolbar';
 import CodeEditor from '../components/CodeEditor';
@@ -187,14 +188,14 @@ console.log(greet('Developer'));
   };
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* 顶部工具栏 */}
       <TopToolbar onShare={handleShare} />
       
       {/* 主要内容区域 */}
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex overflow-hidden">
         {/* 左侧编辑器 */}
-        <div className="w-1/2 flex flex-col bg-white border-r border-gray-200">
+        <div className="w-1/2 flex flex-col bg-white border-r border-gray-200 overflow-hidden">
           {/* 格式选择器 */}
           <div className="border-b border-gray-200 p-4 flex-shrink-0">
             <FormatSelector 
@@ -204,7 +205,7 @@ console.log(greet('Developer'));
           </div>
           
           {/* 代码编辑器 */}
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 overflow-hidden">
             <CodeEditor 
               code={code}
               format={format}
@@ -214,7 +215,7 @@ console.log(greet('Developer'));
         </div>
         
         {/* 右侧预览面板 */}
-        <div className="w-1/2 bg-white">
+        <div className="w-1/2 bg-white overflow-hidden">
           <PreviewPanel 
             code={code}
             format={format}
