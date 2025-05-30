@@ -25,7 +25,11 @@ const SharePage: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   const fetchShareData = async (inputPassword?: string) => {
-    if (!id) return;
+    if (!id) {
+      setError('分享 ID 不存在');
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -33,43 +37,32 @@ const SharePage: React.FC = () => {
     try {
       console.log('Fetching share data for ID:', id);
       
-      const params = new URLSearchParams({ id });
+      // 构建请求参数
+      const requestBody: any = { id };
       if (inputPassword) {
-        params.append('password', inputPassword);
+        requestBody.password = inputPassword;
       }
 
       const { data, error: functionError } = await supabase.functions.invoke('get-share', {
-        body: {},
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        body: requestBody
       });
 
-      // 由于 Supabase Functions 的限制，我们需要直接调用
-      const response = await fetch(
-        `https://iqqlrnwznjtlepgtrcmg.supabase.co/functions/v1/get-share?${params.toString()}`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxcWxybnd6bmp0bGVwZ3RyY21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk2Mzc1ODksImV4cCI6MjA1NTIxMzU4OX0.7DSDgARBKNqUHLpJUNHNeLkak3yUmDuy3SyiZ6W2pfQ`,
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxcWxybnd6bmp0bGVwZ3RyY21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk2Mzc1ODksImV4cCI6MjA1NTIxMzU4OX0.7DSDgARBKNqUHLpJUNHNeLkak3yUmDuy3SyiZ6W2pfQ'
-          }
-        }
-      );
+      if (functionError) {
+        console.error('Supabase function error:', functionError);
+        throw new Error(functionError.message || '调用分享服务失败');
+      }
 
-      const result = await response.json();
-
-      if (!result.success) {
-        if (result.requiresPassword) {
+      if (!data.success) {
+        if (data.requiresPassword) {
           setRequiresPassword(true);
           setError('需要密码访问此分享');
         } else {
-          setError(result.error || '无法加载分享内容');
+          setError(data.error || '无法加载分享内容');
         }
         return;
       }
 
-      setShareData(result.data);
+      setShareData(data.data);
       setRequiresPassword(false);
 
     } catch (err) {

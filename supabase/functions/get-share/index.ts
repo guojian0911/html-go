@@ -22,9 +22,27 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const shareId = url.searchParams.get('id');
-    const password = url.searchParams.get('password');
+    let shareId: string;
+    let password: string | null = null;
+
+    // 支持 GET 和 POST 请求
+    if (req.method === 'GET') {
+      const url = new URL(req.url);
+      shareId = url.searchParams.get('id') || '';
+      password = url.searchParams.get('password');
+    } else if (req.method === 'POST') {
+      const body = await req.json();
+      shareId = body.id || '';
+      password = body.password || null;
+    } else {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Method not allowed' }),
+        { 
+          status: 405,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     if (!shareId) {
       return new Response(
