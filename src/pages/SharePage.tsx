@@ -1,11 +1,11 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Lock, Eye, Download, Copy, Check } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { marked } from 'marked';
 
 interface ShareData {
   id: string;
@@ -23,6 +23,15 @@ const SharePage: React.FC = () => {
   const [requiresPassword, setRequiresPassword] = useState(false);
   const [password, setPassword] = useState('');
   const [copied, setCopied] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // 配置 marked 选项
+  useEffect(() => {
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+    });
+  }, []);
 
   const fetchShareData = async (inputPassword?: string) => {
     if (!id) {
@@ -133,29 +142,273 @@ const SharePage: React.FC = () => {
   };
 
   const renderPreview = () => {
-    if (!shareData) return null;
+    if (!shareData || !iframeRef.current) return;
 
-    if (shareData.codeType === 'html') {
-      return (
-        <iframe
-          srcDoc={shareData.content}
-          className="w-full h-full border-0"
-          title="HTML Preview"
-          sandbox="allow-scripts allow-same-origin"
-        />
-      );
+    const iframe = iframeRef.current;
+    const doc = iframe.contentDocument;
+    
+    if (!doc) return;
+
+    switch (shareData.codeType) {
+      case 'html':
+        doc.open();
+        doc.write(shareData.content || '<div style="padding: 40px; text-align: center; color: #666;">暂无内容</div>');
+        doc.close();
+        break;
+
+      case 'markdown':
+        const markdownHtml = shareData.content ? marked(shareData.content) : '<p style="text-align: center; color: #666;">暂无内容</p>';
+        
+        const htmlContent = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                background: white;
+              }
+              
+              h1, h2, h3, h4, h5, h6 { 
+                color: #2563eb; 
+                margin-top: 1.5em;
+                margin-bottom: 0.5em;
+                font-weight: 600;
+              }
+              h1 { 
+                border-bottom: 2px solid #e5e7eb; 
+                padding-bottom: 0.3em; 
+                font-size: 2em;
+              }
+              h2 { font-size: 1.5em; }
+              h3 { font-size: 1.25em; }
+              
+              p { margin: 1em 0; }
+              strong { font-weight: 600; color: #374151; }
+              em { font-style: italic; color: #6b7280; }
+              
+              code { 
+                background: #f3f4f6; 
+                padding: 2px 6px; 
+                border-radius: 4px; 
+                font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+                font-size: 0.9em;
+                color: #dc2626;
+              }
+              
+              pre { 
+                background: #1f2937; 
+                color: #f9fafb; 
+                padding: 16px; 
+                border-radius: 8px; 
+                overflow-x: auto;
+                margin: 1em 0;
+                border: 1px solid #374151;
+              }
+              
+              pre code {
+                background: none;
+                padding: 0;
+                color: inherit;
+                font-size: 0.875em;
+              }
+              
+              blockquote { 
+                border-left: 4px solid #6366f1; 
+                margin: 16px 0; 
+                padding: 8px 16px; 
+                background: #f8fafc;
+                color: #4b5563;
+                border-radius: 0 4px 4px 0;
+              }
+              
+              a { 
+                color: #6366f1; 
+                text-decoration: none; 
+                border-bottom: 1px solid transparent;
+                transition: border-color 0.2s;
+              }
+              a:hover { 
+                border-bottom-color: #6366f1;
+              }
+              
+              ul, ol { 
+                margin: 1em 0; 
+                padding-left: 2em;
+              }
+              li { 
+                margin: 4px 0; 
+                line-height: 1.6;
+              }
+              
+              table {
+                border-collapse: collapse;
+                width: 100%;
+                margin: 1em 0;
+                background: white;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+              }
+              
+              th, td {
+                border: 1px solid #e5e7eb;
+                padding: 12px 16px;
+                text-align: left;
+              }
+              
+              th {
+                background: #f9fafb;
+                font-weight: 600;
+                color: #374151;
+              }
+              
+              tr:nth-child(even) td {
+                background: #f9fafb;
+              }
+              
+              tr:hover td {
+                background: #f3f4f6;
+              }
+              
+              hr {
+                border: none;
+                height: 2px;
+                background: linear-gradient(to right, #e5e7eb, #d1d5db, #e5e7eb);
+                margin: 2em 0;
+                border-radius: 1px;
+              }
+              
+              img {
+                max-width: 100%;
+                height: auto;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                margin: 1em 0;
+              }
+              
+              input[type="checkbox"] {
+                margin-right: 8px;
+              }
+            </style>
+          </head>
+          <body>
+            ${markdownHtml}
+          </body>
+          </html>
+        `;
+        
+        doc.open();
+        doc.write(htmlContent);
+        doc.close();
+        break;
+
+      case 'svg':
+        const svgHtml = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body {
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: calc(100vh - 40px);
+                background: #f8fafc;
+              }
+              svg {
+                max-width: 100%;
+                max-height: 100%;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+              }
+            </style>
+          </head>
+          <body>
+            ${shareData.content || '<p style="text-align: center; color: #666;">暂无内容</p>'}
+          </body>
+          </html>
+        `;
+        
+        doc.open();
+        doc.write(svgHtml);
+        doc.close();
+        break;
+
+      case 'mermaid':
+        const mermaidHtml = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+            <style>
+              body {
+                margin: 0;
+                padding: 20px;
+                font-family: 'Inter', sans-serif;
+                background: #f8fafc;
+              }
+              .mermaid {
+                text-align: center;
+                background: white;
+                border-radius: 8px;
+                padding: 20px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+              }
+            </style>
+          </head>
+          <body>
+            <div class="mermaid">
+              ${shareData.content || 'graph TD\nA[暂无内容] --> B[请添加 Mermaid 代码]'}
+            </div>
+            <script>
+              mermaid.initialize({ 
+                startOnLoad: true,
+                theme: 'default',
+                themeVariables: {
+                  primaryColor: '#6366f1',
+                  primaryTextColor: '#ffffff',
+                  primaryBorderColor: '#4f46e5',
+                  lineColor: '#374151',
+                  sectionBkgColor: '#f3f4f6',
+                  altSectionBkgColor: '#ffffff',
+                  gridColor: '#e5e7eb'
+                }
+              });
+            </script>
+          </body>
+          </html>
+        `;
+        
+        doc.open();
+        doc.write(mermaidHtml);
+        doc.close();
+        break;
     }
-
-    return (
-      <pre className="whitespace-pre-wrap font-mono text-sm p-4 bg-gray-50 rounded-lg overflow-auto h-full">
-        {shareData.content}
-      </pre>
-    );
   };
 
   useEffect(() => {
     fetchShareData();
   }, [id]);
+
+  useEffect(() => {
+    if (shareData) {
+      const timer = setTimeout(() => {
+        renderPreview();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [shareData]);
 
   if (loading) {
     return (
@@ -294,7 +547,12 @@ const SharePage: React.FC = () => {
             </div>
             
             <div className="h-[calc(100%-60px)] border border-gray-200 rounded-lg overflow-hidden">
-              {renderPreview()}
+              <iframe
+                ref={iframeRef}
+                className="w-full h-full border-0"
+                title="代码预览"
+                sandbox="allow-scripts allow-same-origin"
+              />
             </div>
           </div>
         </div>
