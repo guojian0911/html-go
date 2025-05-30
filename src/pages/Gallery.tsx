@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -123,10 +124,59 @@ const Gallery = () => {
       </header>
 
       {/* 主要内容区域 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* 标语区域 */}
+        <div className="text-center py-16 bg-gradient-to-r from-blue-50 to-purple-50 -mx-4 sm:-mx-6 lg:-mx-8 mb-12">
+          <div className="max-w-4xl mx-auto px-4">
+            <h1 className="text-5xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                发现、创建与分享
+              </span>
+            </h1>
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              多格式渲染的中心平台
+            </h2>
+            <p className="text-xl text-gray-600 mb-12 leading-relaxed">
+              探索高质量的代码作品，提升您与开发者交流的效率，释放创意的全部潜能
+            </p>
+            
+            {/* 大搜索框 */}
+            <div className="relative max-w-2xl mx-auto mb-8">
+              <div className="relative">
+                <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
+                <Input
+                  placeholder="搜索项目、类别或关键词..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-16 pr-6 py-6 text-lg border-gray-300 rounded-2xl shadow-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
+                />
+              </div>
+            </div>
+
+            {/* 快速操作按钮 */}
+            <div className="flex justify-center space-x-4">
+              <Button 
+                onClick={() => navigate('/editor')}
+                className="bg-blue-600 hover:bg-blue-700 px-8 py-3 text-lg rounded-xl"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                创建项目
+              </Button>
+              <Button 
+                variant="outline"
+                className="px-8 py-3 text-lg rounded-xl border-gray-300 hover:bg-gray-50"
+              >
+                <Eye className="w-5 h-5 mr-2" />
+                浏览热门
+              </Button>
+            </div>
+          </div>
+        </div>
+
         {/* Trending Projects 标题部分 */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Trending Projects</h2>
+        <div className="text-center mb-8">
+          <h3 className="text-3xl font-bold text-gray-900 mb-4">热门项目</h3>
+          <p className="text-gray-600">发现社区中最受欢迎的创意作品</p>
         </div>
 
         {/* 筛选标签栏 */}
@@ -146,19 +196,6 @@ const Gallery = () => {
                 {format.label}
               </Badge>
             ))}
-          </div>
-        </div>
-
-        {/* 搜索框 */}
-        <div className="mb-12">
-          <div className="relative max-w-xl mx-auto">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              placeholder="搜索项目..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 pr-4 py-4 text-base border-gray-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
           </div>
         </div>
 
@@ -251,3 +288,4 @@ const Gallery = () => {
 };
 
 export default Gallery;
+
