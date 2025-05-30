@@ -21,6 +21,7 @@ import {
   Clock
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ShareDialogProps {
   isOpen: boolean;
@@ -39,26 +40,51 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareId, setShareId] = useState('');
+  const [password, setPassword] = useState('');
+  const [usePassword, setUsePassword] = useState(false);
 
   // 生成分享链接
   const generateShareUrl = async () => {
     setIsGenerating(true);
     
-    // 模拟生成分享ID（实际应用中应该调用后端API）
-    const id = Math.random().toString(36).substring(2, 15);
-    setShareId(id);
-    
-    // 模拟API延迟
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const url = `${window.location.origin}/share/${id}`;
-    setShareUrl(url);
-    setIsGenerating(false);
-    
-    toast({
-      title: "分享链接已生成",
-      description: "你的代码已保存，可以分享给任何人查看！",
-    });
+    try {
+      console.log('Creating share with format:', format);
+      
+      const { data, error } = await supabase.functions.invoke('create-share', {
+        body: {
+          code,
+          format,
+          password: usePassword ? password : null
+        }
+      });
+
+      if (error) {
+        console.error('Error creating share:', error);
+        throw new Error(error.message || 'Failed to create share');
+      }
+
+      if (data?.success) {
+        setShareId(data.shareId);
+        setShareUrl(data.shareUrl);
+        
+        toast({
+          title: "分享链接已生成",
+          description: "你的代码已保存，可以分享给任何人查看！",
+        });
+      } else {
+        throw new Error(data?.error || 'Failed to create share');
+      }
+
+    } catch (error) {
+      console.error('Error generating share URL:', error);
+      toast({
+        title: "生成失败",
+        description: error.message || "无法生成分享链接，请重试",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   // 复制到剪贴板
@@ -118,6 +144,8 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
       setShareUrl('');
       setShareId('');
       setCopied(false);
+      setPassword('');
+      setUsePassword(false);
     }
   }, [isOpen]);
 
@@ -165,6 +193,34 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
               </div>
             </div>
           </div>
+
+          {/* 密码保护选项 */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="usePassword"
+                checked={usePassword}
+                onChange={(e) => setUsePassword(e.target.checked)}
+                className="rounded border-gray-300"
+                disabled={isGenerating || shareUrl}
+              />
+              <label htmlFor="usePassword" className="text-sm font-medium text-gray-700">
+                使用密码保护
+              </label>
+            </div>
+            
+            {usePassword && (
+              <Input
+                type="password"
+                placeholder="设置访问密码"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isGenerating || shareUrl}
+                className="text-sm"
+              />
+            )}
+          </div>
           
           {/* 分享链接区域 */}
           <div className="space-y-3">
@@ -192,6 +248,7 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
                   variant="outline"
                   size="sm"
                   className="flex-shrink-0"
+                  disabled={!shareUrl}
                 >
                   {copied ? (
                     <Check className="w-4 h-4 text-green-600" />
@@ -217,7 +274,6 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
             
             <Button
               onClick={() => {
-                // 模拟生成二维码功能
                 toast({
                   title: "二维码功能",
                   description: "二维码分享功能开发中...",
@@ -241,8 +297,8 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
               <div>
                 <p className="text-sm text-blue-800 font-medium">分享说明</p>
                 <p className="text-xs text-blue-600 mt-1">
-                  分享链接包含完整的代码和预览效果，任何人都可以通过链接查看。
-                  代码将永久保存在我们的服务器上。
+                  分享链接包含完整的代码和预览效果，{usePassword ? '需要密码才能' : '任何人都可以通过链接'}查看。
+                  代码将永久保存在服务器上。
                 </p>
               </div>
             </div>
