@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Lock, Eye, Download, Copy, Check } from 'lucide-react';
+import { Lock, Download, Copy, Check } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { marked } from 'marked';
@@ -46,7 +47,6 @@ const SharePage: React.FC = () => {
     try {
       console.log('Fetching share data for ID:', id);
       
-      // 构建请求参数
       const requestBody: any = { id };
       if (inputPassword) {
         requestBody.password = inputPassword;
@@ -487,7 +487,7 @@ const SharePage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h1 className="text-lg font-semibold text-gray-900">
-              分享的 {shareData.codeType.toUpperCase()} 代码
+              分享的 {shareData.codeType.toUpperCase()} 内容
             </h1>
             <span className="text-sm text-gray-500">
               ID: {shareData.id}
@@ -520,42 +520,14 @@ const SharePage: React.FC = () => {
         </div>
       </div>
 
-      {/* 主要内容区域 */}
-      <div className="flex h-[calc(100vh-73px)]">
-        {/* 代码区域 */}
-        <div className="w-1/2 bg-white border-r border-gray-200">
-          <div className="h-full p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-gray-900">源代码</h2>
-              <span className="text-sm text-gray-500">
-                {shareData.content.length} 字符，{shareData.content.split('\n').length} 行
-              </span>
-            </div>
-            
-            <pre className="whitespace-pre-wrap font-mono text-sm p-4 bg-gray-50 rounded-lg overflow-auto h-[calc(100%-60px)]">
-              {shareData.content}
-            </pre>
-          </div>
-        </div>
-
-        {/* 预览区域 */}
-        <div className="w-1/2 bg-white">
-          <div className="h-full p-4">
-            <div className="flex items-center mb-4">
-              <Eye className="w-5 h-5 mr-2 text-gray-600" />
-              <h2 className="font-semibold text-gray-900">预览效果</h2>
-            </div>
-            
-            <div className="h-[calc(100%-60px)] border border-gray-200 rounded-lg overflow-hidden">
-              <iframe
-                ref={iframeRef}
-                className="w-full h-full border-0"
-                title="代码预览"
-                sandbox="allow-scripts allow-same-origin"
-              />
-            </div>
-          </div>
-        </div>
+      {/* 预览内容区域 - 全屏显示 */}
+      <div className="h-[calc(100vh-73px)]">
+        <iframe
+          ref={iframeRef}
+          className="w-full h-full border-0 bg-white"
+          title="分享内容预览"
+          sandbox="allow-scripts allow-same-origin"
+        />
       </div>
     </div>
   );
