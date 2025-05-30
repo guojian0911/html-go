@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Share2, FileText, Github, Heart, ArrowLeft } from 'lucide-react';
+import { Share2, FileText, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
@@ -46,21 +46,8 @@ const EditorTopToolbar: React.FC<EditorTopToolbarProps> = ({ onShare }) => {
         </div>
       </div>
       
-      {/* 右侧 - 操作按钮 */}
+      {/* 右侧 - 分享按钮 */}
       <div className="flex items-center space-x-3">
-        {/* GitHub 链接 */}
-        <Button variant="ghost" size="sm" className="btn-ghost">
-          <Github className="w-4 h-4 mr-2" />
-          GitHub
-        </Button>
-        
-        {/* 文档链接 */}
-        <Button variant="ghost" size="sm" className="btn-ghost">
-          <FileText className="w-4 h-4 mr-2" />
-          文档
-        </Button>
-        
-        {/* 分享按钮 */}
         <Button 
           onClick={onShare}
           className="btn-primary btn-hover"
@@ -68,12 +55,6 @@ const EditorTopToolbar: React.FC<EditorTopToolbarProps> = ({ onShare }) => {
         >
           <Share2 className="w-4 h-4 mr-2" />
           分享
-        </Button>
-        
-        {/* 支持按钮 */}
-        <Button variant="ghost" size="sm" className="btn-ghost text-red-500 hover:text-red-600">
-          <Heart className="w-4 h-4 mr-1" />
-          支持
         </Button>
       </div>
     </div>
