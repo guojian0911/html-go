@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -98,13 +99,13 @@ const Gallery = () => {
 
             {/* 右侧操作区 */}
             <div className="flex items-center space-x-4">
-              {/* 快速创建按钮 */}
+              {/* 快速创建按钮 - 只显示加号 */}
               <Button 
                 onClick={() => navigate('/editor')}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 p-0 flex items-center justify-center"
+                size="icon"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                快速创建
+                <Plus className="w-5 h-5" />
               </Button>
 
               {/* 用户头像/登录按钮 */}
