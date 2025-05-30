@@ -87,10 +87,10 @@
     font-feature-settings: 'rlig' 1, 'calt' 1;
   }
 
-  /* 自定义滚动条 */
+  /* 自定义滚动条 - 通用滚动条 */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
@@ -103,6 +103,29 @@
 
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400;
+  }
+
+  /* 代码编辑器专用滚动条样式 */
+  .code-editor textarea::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .code-editor textarea::-webkit-scrollbar-track {
+    background: #374151;
+  }
+
+  .code-editor textarea::-webkit-scrollbar-thumb {
+    background: #6b7280;
+    border-radius: 4px;
+  }
+
+  .code-editor textarea::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+
+  .code-editor textarea::-webkit-scrollbar-corner {
+    background: #374151;
   }
 
   /* 代码编辑器样式 */

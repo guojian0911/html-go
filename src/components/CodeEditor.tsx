@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { CodeFormat } from '../pages/Index';
 
@@ -80,9 +81,13 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ code, format, onChange }) => {
           className={`
             w-full h-full p-4 pl-12 font-mono text-sm leading-relaxed
             bg-gray-900 text-gray-100 placeholder-gray-500
-            border-none outline-none resize-none overflow-auto
-            focus:ring-0
+            border-none outline-none resize-none 
+            focus:ring-0 overflow-y-auto overflow-x-auto
           `}
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#4b5563 #374151'
+          }}
           spellCheck={false}
         />
         
