@@ -1,3 +1,5 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,47 +37,32 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
@@ -96,6 +83,130 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  /* 自定义滚动条 */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+
+  /* 代码编辑器样式 */
+  .code-editor {
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    @apply bg-gray-900 text-gray-100;
+  }
+
+  /* 预览面板样式 */
+  .preview-panel {
+    @apply bg-white border-0 w-full h-full;
+  }
+
+  /* 工具栏样式 */
+  .toolbar {
+    @apply bg-gray-50 border-b border-gray-200;
+    backdrop-filter: blur(10px);
+  }
+
+  /* 按钮悬停效果 */
+  .btn-hover {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .btn-hover:hover {
+    @apply transform -translate-y-0.5 shadow-md;
+  }
+
+  /* 卡片样式 */
+  .card-modern {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100;
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
+  }
+
+  /* 代码语法高亮基础样式 */
+  .syntax-highlight {
+    @apply text-gray-300;
+  }
+
+  .syntax-keyword {
+    @apply text-purple-400;
+  }
+
+  .syntax-string {
+    @apply text-green-400;
+  }
+
+  .syntax-comment {
+    @apply text-gray-500 italic;
+  }
+
+  .syntax-number {
+    @apply text-orange-400;
+  }
+
+  .syntax-tag {
+    @apply text-red-400;
+  }
+
+  .syntax-attribute {
+    @apply text-yellow-400;
+  }
+}
+
+@layer components {
+  /* 品牌按钮样式 */
+  .btn-primary {
+    @apply bg-brand-primary hover:bg-brand-primary-dark text-white font-medium px-4 py-2 rounded-lg transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium px-4 py-2 rounded-lg transition-all duration-200;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-gray-100 text-gray-600 font-medium px-4 py-2 rounded-lg transition-all duration-200;
+  }
+
+  /* 输入框样式 */
+  .input-modern {
+    @apply bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent transition-all duration-200;
+  }
+
+  /* 分割线样式 */
+  .divider {
+    @apply w-px bg-gray-200;
+  }
+
+  /* 状态指示器 */
+  .status-indicator {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .status-success {
+    @apply bg-brand-success;
+  }
+
+  .status-error {
+    @apply bg-brand-error;
+  }
+
+  .status-warning {
+    @apply bg-brand-warning;
   }
 }
