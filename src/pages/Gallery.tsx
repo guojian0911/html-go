@@ -1,12 +1,11 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Search, Filter, Eye, Calendar, Code2, User, Share } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import GalleryHeader from '@/components/gallery/GalleryHeader';
+import HeroSection from '@/components/gallery/HeroSection';
+import ProjectsSection from '@/components/gallery/ProjectsSection';
+import FilterTabs from '@/components/gallery/FilterTabs';
+import ProjectGrid from '@/components/gallery/ProjectGrid';
 
 const Gallery = () => {
   const navigate = useNavigate();
@@ -61,14 +60,6 @@ const Gallery = () => {
     },
   ];
 
-  const formats = [
-    { value: 'all', label: '全部', color: 'default' },
-    { value: 'html', label: 'HTML', color: 'destructive' },
-    { value: 'markdown', label: 'Markdown', color: 'secondary' },
-    { value: 'svg', label: 'SVG', color: 'outline' },
-    { value: 'mermaid', label: 'Mermaid', color: 'default' },
-  ];
-
   const filteredWorks = mockWorks.filter(work => {
     const matchesSearch = work.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          work.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -82,187 +73,26 @@ const Gallery = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 精简的顶部导航栏 */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Code2 className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">HTML-Go</h1>
-                <p className="text-xs text-gray-500">多格式渲染分享平台</p>
-              </div>
-            </div>
-
-            {/* 右侧操作区 */}
-            <div className="flex items-center space-x-4">
-              {/* 快速创建按钮 - 只显示加号 */}
-              <Button 
-                onClick={() => navigate('/editor')}
-                className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 p-0 flex items-center justify-center"
-                size="icon"
-              >
-                <Plus className="w-5 h-5" />
-              </Button>
-
-              {/* 用户头像/登录按钮 */}
-              <div className="flex items-center">
-                <Avatar className="w-8 h-8 cursor-pointer">
-                  <AvatarImage src="" />
-                  <AvatarFallback className="bg-gray-200">
-                    <User className="w-4 h-4 text-gray-600" />
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* 主要内容区域 */}
+      <GalleryHeader />
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 标语区域 - 移除背景色 */}
-        <div className="text-center py-16 mb-12">
-          <div className="max-w-4xl mx-auto px-4">
-            <h1 className="text-5xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                发现、创建与分享
-              </span>
-            </h1>
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              多格式渲染的中心平台
-            </h2>
-            <p className="text-xl text-gray-600 mb-12 leading-relaxed">
-              探索高质量的代码作品，提升您与开发者交流的效率，释放创意的全部潜能
-            </p>
-            
-            {/* 大搜索框 */}
-            <div className="relative max-w-2xl mx-auto">
-              <div className="relative">
-                <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
-                <Input
-                  placeholder="搜索项目、类别或关键词..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-16 pr-6 py-6 text-lg border-gray-300 rounded-2xl shadow-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Trending Projects 标题部分 */}
-        <div className="text-center mb-8">
-          <h3 className="text-3xl font-bold text-gray-900 mb-4">热门项目</h3>
-          <p className="text-gray-600">发现社区中最受欢迎的创意作品</p>
-        </div>
-
-        {/* 筛选标签栏 */}
-        <div className="flex justify-center mb-12">
-          <div className="flex flex-wrap gap-3">
-            {formats.map((format) => (
-              <Badge
-                key={format.value}
-                variant={selectedFormat === format.value ? 'default' : 'outline'}
-                className={`cursor-pointer px-6 py-2 text-sm font-medium transition-all hover:shadow-md ${
-                  selectedFormat === format.value 
-                    ? 'bg-gray-800 text-white hover:bg-gray-700' 
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-300'
-                }`}
-                onClick={() => setSelectedFormat(format.value)}
-              >
-                {format.label}
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        {/* 作品网格 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {filteredWorks.map((work) => (
-            <Card 
-              key={work.id} 
-              className="cursor-pointer hover:shadow-xl transition-all duration-300 group border-0 shadow-lg rounded-2xl overflow-hidden bg-white"
-              onClick={() => handleWorkClick(work.id)}
-            >
-              <CardHeader className="p-0">
-                <div className="aspect-video bg-gray-100 overflow-hidden relative">
-                  <img 
-                    src={work.thumbnail} 
-                    alt={work.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  {/* 悬浮时显示预览按钮 */}
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="bg-white rounded-full p-3 shadow-lg">
-                        <Eye className="w-5 h-5 text-gray-700" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="flex items-start mb-3">
-                  <Avatar className="w-8 h-8 mr-3 mt-1">
-                    <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                      {work.author?.charAt(0) || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1 leading-tight mb-1">
-                      {work.title}
-                    </CardTitle>
-                    <p className="text-sm text-gray-500">{work.author}</p>
-                  </div>
-                </div>
-                
-                <CardDescription className="text-gray-600 mb-4 line-clamp-2 text-sm leading-relaxed">
-                  {work.description}
-                </CardDescription>
-                
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-1">
-                      <Eye className="w-4 h-4" />
-                      <span>{work.viewCount}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Share className="w-4 h-4" />
-                      <span>{work.shareCount}</span>
-                    </div>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    {work.format.toUpperCase()}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* 空状态 */}
-        {filteredWorks.length === 0 && (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Search className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-xl font-medium text-gray-900 mb-3">没有找到相关项目</h3>
-            <p className="text-gray-500 mb-8 max-w-md mx-auto">
-              {searchQuery ? '尝试调整搜索关键词或筛选条件' : '还没有发布的项目'}
-            </p>
-            <Button 
-              onClick={() => navigate('/editor')}
-              className="bg-blue-600 hover:bg-blue-700 px-8 py-3"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              创建第一个项目
-            </Button>
-          </div>
-        )}
+        <HeroSection 
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+        
+        <ProjectsSection />
+        
+        <FilterTabs 
+          selectedFormat={selectedFormat}
+          onFormatChange={setSelectedFormat}
+        />
+        
+        <ProjectGrid 
+          works={filteredWorks}
+          searchQuery={searchQuery}
+          onWorkClick={handleWorkClick}
+        />
       </main>
     </div>
   );
