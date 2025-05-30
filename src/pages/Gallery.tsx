@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -123,8 +124,8 @@ const Gallery = () => {
 
       {/* 主要内容区域 */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 标语区域 */}
-        <div className="text-center py-16 bg-gradient-to-r from-blue-50 to-purple-50 -mx-4 sm:-mx-6 lg:-mx-8 mb-12">
+        {/* 标语区域 - 移除背景色 */}
+        <div className="text-center py-16 mb-12">
           <div className="max-w-4xl mx-auto px-4">
             <h1 className="text-5xl font-bold mb-6">
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
