@@ -7,6 +7,18 @@ import { ArrowLeft, Eye, Calendar, Copy, Download, Edit3, Code2 } from 'lucide-r
 import { toast } from '@/hooks/use-toast';
 import { marked } from 'marked';
 
+type CodeFormat = 'html' | 'markdown' | 'svg' | 'mermaid';
+
+interface Work {
+  id: string;
+  title: string;
+  description: string;
+  format: CodeFormat;
+  viewCount: number;
+  createdAt: string;
+  content: string;
+}
+
 const WorkDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -14,11 +26,11 @@ const WorkDetail = () => {
   const [showSourceCode, setShowSourceCode] = useState(false);
 
   // 模拟数据 - 实际项目中这里会从数据库获取
-  const mockWork = {
-    id: id,
+  const mockWork: Work = {
+    id: id || '1',
     title: '响应式导航栏设计',
     description: '一个现代化的响应式导航栏，支持移动端适配，包含了下拉菜单、移动端汉堡菜单等功能。',
-    format: 'html' as const,
+    format: 'html',
     viewCount: 234,
     createdAt: '2024-01-15',
     content: `<!DOCTYPE html>
@@ -239,7 +251,7 @@ const WorkDetail = () => {
   };
 
   const handleDownload = () => {
-    const extensions = {
+    const extensions: Record<CodeFormat, string> = {
       html: 'html',
       markdown: 'md',
       svg: 'svg',
