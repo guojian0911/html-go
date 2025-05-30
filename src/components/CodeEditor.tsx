@@ -11,14 +11,6 @@ interface CodeEditorProps {
 const CodeEditor: React.FC<CodeEditorProps> = ({ code, format, onChange }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    // 自动调整文本框高度
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-    }
-  }, [code]);
-
   const getPlaceholder = () => {
     const placeholders = {
       html: '在这里输入或粘贴你的 HTML 代码...\n\n例如：\n<h1>Hello World!</h1>\n<p>这是一个 HTML 示例</p>',
@@ -49,7 +41,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ code, format, onChange }) => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col code-editor">
       {/* 编辑器头部 */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
         <div className="flex items-center space-x-3">
@@ -71,7 +63,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ code, format, onChange }) => {
       </div>
       
       {/* 代码编辑区域 */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative min-h-0">
         <textarea
           ref={textareaRef}
           value={code}
@@ -82,12 +74,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ code, format, onChange }) => {
             w-full h-full p-4 pl-12 font-mono text-sm leading-relaxed
             bg-gray-900 text-gray-100 placeholder-gray-500
             border-none outline-none resize-none 
-            focus:ring-0 overflow-y-auto overflow-x-auto
+            focus:ring-0 overflow-auto
           `}
-          style={{
-            scrollbarWidth: 'thin',
-            scrollbarColor: '#4b5563 #374151'
-          }}
           spellCheck={false}
         />
         
