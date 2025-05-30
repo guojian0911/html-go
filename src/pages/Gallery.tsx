@@ -34,7 +34,7 @@ const Gallery = () => {
       shareCount: 8,
       createdAt: '2024-01-14',
       author: '李四',
-      thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcz4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iZ3JhZDIiIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMyZDEyNDI7c3RvcC1vcGFjaXR5OjEiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFmMGEyMDtzdG9wLW9wYWNpdHk6MSIgLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSJ1cmwoI2dyYWQyKSIvPgogIDxjaXJjbGUgY3g9IjgwIiBjeT0iNjAiIHI9IjE1IiBmaWxsPSIjZmY2MzQ3IiBmaWxsLW9wYWNpdHk9IjAuOSIvPgogIDxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSIyMCIgZmlsbD0iIzM0ZDM5OSIgZmlsbC1vcGFjaXR5PSIwLjkiLz4KICA8Y2lyY2xlIGN4PSIyNDAiIGN5PSIxMjAiIHI9IjE4IiBmaWxsPSIjZmJkMzhjIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgogIDxjaXJjbGUgY3g9IjEyMCIgY3k9IjE0MCIgcj0iMTIiIGZpbGw9IiNhNzg0ZmYiIGZpbGwtb3BhY2l0eT0iMC45Ii8+CiAgPGNpcmNsZSBjeD0iMjgwIiBjeT0iNDAiIHI9IjE0IiBmaWxsPSIjZjQ3MWI1IiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4K'
+      thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcz4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iZ3JhZDIiIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMyZDEyNDI7c3RvcC1vcGFjaXR5OjEiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFmMGEyMDtzdG9wLW9wYWNpdHk6MSIgLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTgwIiBmaWxsPSJ1cmwoI2dyYWQyKSIvPgogIDxjaXJjbGUgY3g9IjgwIiBjeT0iNjAiIHI9IjE1IiBmaWxsPSIjZmY2MzQ3IiBmaWxsLW9wYWNpdHk9IjAuOSIvPgogIDxjaXJjbGUgY3g9IjE2MCIgY3k9IjkwIiByPSIyMCIgZmlsbD0iIzM0ZDM5OSIgZmlsbC1vcGFjaXR5PSIwLjkiLz4KICA8Y2lyY2xlIGN4PSIyNDAiIGN5PSIxMjAiIHI9IjE4IiBmaWxsPSIjZjQ3MWI1IiBmaWxsLW9wYWNpdHk9IjAuOSIvPgogIDxjaXJjbGUgY3g9IjEyMCIgY3k9IjE0MCIgcj0iMTIiIGZpbGw9IiNhNzg0ZmYiIGZpbGwtb3BhY2l0eT0iMC45Ii8+CiAgPGNpcmNsZSBjeD0iMjgwIiBjeT0iNDAiIHI9IjE0IiBmaWxsPSIjZjlmYWZiIiBmaWxsLW9wYWNpdHk9IjAuOSIvPgo8L3N2Zz4K'
     },
     {
       id: '3',
@@ -139,7 +139,7 @@ const Gallery = () => {
             </p>
             
             {/* 大搜索框 */}
-            <div className="relative max-w-2xl mx-auto mb-8">
+            <div className="relative max-w-2xl mx-auto">
               <div className="relative">
                 <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
                 <Input
@@ -149,24 +149,6 @@ const Gallery = () => {
                   className="pl-16 pr-6 py-6 text-lg border-gray-300 rounded-2xl shadow-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
                 />
               </div>
-            </div>
-
-            {/* 快速操作按钮 */}
-            <div className="flex justify-center space-x-4">
-              <Button 
-                onClick={() => navigate('/editor')}
-                className="bg-blue-600 hover:bg-blue-700 px-8 py-3 text-lg rounded-xl"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                创建项目
-              </Button>
-              <Button 
-                variant="outline"
-                className="px-8 py-3 text-lg rounded-xl border-gray-300 hover:bg-gray-50"
-              >
-                <Eye className="w-5 h-5 mr-2" />
-                浏览热门
-              </Button>
             </div>
           </div>
         </div>
