@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { CodeFormat } from '../pages/Index';
 
@@ -51,7 +50,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ code, format, onChange }) => {
   return (
     <div className="h-full flex flex-col">
       {/* 编辑器头部 */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-red-400 rounded-full"></div>
@@ -71,7 +70,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ code, format, onChange }) => {
       </div>
       
       {/* 代码编辑区域 */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative overflow-hidden">
         <textarea
           ref={textareaRef}
           value={code}
@@ -79,16 +78,16 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ code, format, onChange }) => {
           onKeyDown={handleKeyDown}
           placeholder={getPlaceholder()}
           className={`
-            w-full h-full min-h-[600px] p-4 font-mono text-sm leading-relaxed
+            w-full h-full p-4 pl-12 font-mono text-sm leading-relaxed
             bg-gray-900 text-gray-100 placeholder-gray-500
-            border-none outline-none resize-none
+            border-none outline-none resize-none overflow-auto
             focus:ring-0
           `}
           spellCheck={false}
         />
         
         {/* 行号指示器 */}
-        <div className="absolute top-4 left-0 text-xs text-gray-600 font-mono select-none pointer-events-none">
+        <div className="absolute top-4 left-0 text-xs text-gray-600 font-mono select-none pointer-events-none overflow-hidden">
           {code.split('\n').map((_, index) => (
             <div key={index} className="h-6 px-2 text-right w-8">
               {index + 1}
@@ -98,7 +97,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ code, format, onChange }) => {
       </div>
       
       {/* 编辑器底部状态栏 */}
-      <div className="p-2 bg-gray-800 text-xs text-gray-400 flex items-center justify-between">
+      <div className="p-2 bg-gray-800 text-xs text-gray-400 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center space-x-4">
           <span className="capitalize">{format}</span>
           <span>UTF-8</span>
