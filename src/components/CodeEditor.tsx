@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { CodeFormat } from '../pages/Index';
 
 interface CodeEditorProps {
@@ -41,7 +41,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ code, format, onChange }) => {
   };
 
   return (
-    <div className="h-full flex flex-col code-editor">
+    <div className="h-full flex flex-col code-editor overflow-hidden">
       {/* 编辑器头部 */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
         <div className="flex items-center space-x-3">
@@ -63,19 +63,14 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ code, format, onChange }) => {
       </div>
       
       {/* 代码编辑区域 */}
-      <div className="flex-1 relative min-h-0">
+      <div className="flex-1 relative overflow-hidden">
         <textarea
           ref={textareaRef}
           value={code}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={getPlaceholder()}
-          className={`
-            w-full h-full p-4 pl-12 font-mono text-sm leading-relaxed
-            bg-gray-900 text-gray-100 placeholder-gray-500
-            border-none outline-none resize-none 
-            focus:ring-0 overflow-auto
-          `}
+          className="absolute inset-0 w-full h-full p-4 pl-12 font-mono text-sm leading-relaxed bg-gray-900 text-gray-100 placeholder-gray-500 border-none outline-none resize-none focus:ring-0 overflow-auto"
           spellCheck={false}
         />
         
