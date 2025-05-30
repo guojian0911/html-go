@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CodeFormat } from '../pages/Index';
 import { Maximize2, RefreshCw, Eye, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { marked } from 'marked';
 
 interface PreviewPanelProps {
   code: string;
@@ -12,6 +13,14 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ code, format }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 配置 marked 选项
+  useEffect(() => {
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+    });
+  }, []);
 
   const renderPreview = () => {
     setIsLoading(true);
@@ -33,23 +42,9 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ code, format }) => {
           break;
 
         case 'markdown':
-          // 简单的 Markdown 渲染
-          const markdownToHtml = (md: string) => {
-            return md
-              .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-              .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-              .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-              .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-              .replace(/\*(.*)\*/gim, '<em>$1</em>')
-              .replace(/`([^`]+)`/gim, '<code>$1</code>')
-              .replace(/```([^```]+)```/gim, '<pre><code>$1</code></pre>')
-              .replace(/^\* (.*$)/gim, '<li>$1</li>')
-              .replace(/^\d+\. (.*$)/gim, '<li>$1</li>')
-              .replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>')
-              .replace(/\[([^\]]+)\]\(([^\)]+)\)/gim, '<a href="$2" target="_blank">$1</a>')
-              .replace(/\n/gim, '<br>');
-          };
-
+          // 使用 marked 库进行 Markdown 渲染
+          const markdownHtml = code ? marked(code) : '<p style="text-align: center; color: #666;">请在左侧输入 Markdown 内容</p>';
+          
           const htmlContent = `
             <!DOCTYPE html>
             <html>
@@ -63,35 +58,144 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({ code, format }) => {
                   max-width: 800px;
                   margin: 0 auto;
                   padding: 20px;
+                  background: white;
                 }
-                h1, h2, h3 { color: #2563eb; margin-top: 1.5em; }
-                h1 { border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
+                
+                /* 标题样式 */
+                h1, h2, h3, h4, h5, h6 { 
+                  color: #2563eb; 
+                  margin-top: 1.5em;
+                  margin-bottom: 0.5em;
+                  font-weight: 600;
+                }
+                h1 { 
+                  border-bottom: 2px solid #e5e7eb; 
+                  padding-bottom: 0.3em; 
+                  font-size: 2em;
+                }
+                h2 { font-size: 1.5em; }
+                h3 { font-size: 1.25em; }
+                
+                /* 段落和文本 */
+                p { margin: 1em 0; }
+                strong { font-weight: 600; color: #374151; }
+                em { font-style: italic; color: #6b7280; }
+                
+                /* 代码样式 */
                 code { 
                   background: #f3f4f6; 
-                  padding: 2px 4px; 
-                  border-radius: 3px; 
-                  font-family: 'JetBrains Mono', monospace;
+                  padding: 2px 6px; 
+                  border-radius: 4px; 
+                  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+                  font-size: 0.9em;
+                  color: #dc2626;
                 }
+                
                 pre { 
                   background: #1f2937; 
                   color: #f9fafb; 
                   padding: 16px; 
                   border-radius: 8px; 
                   overflow-x: auto;
+                  margin: 1em 0;
+                  border: 1px solid #374151;
                 }
+                
+                pre code {
+                  background: none;
+                  padding: 0;
+                  color: inherit;
+                  font-size: 0.875em;
+                }
+                
+                /* 引用块 */
                 blockquote { 
                   border-left: 4px solid #6366f1; 
                   margin: 16px 0; 
-                  padding-left: 16px; 
-                  color: #6b7280;
+                  padding: 8px 16px; 
+                  background: #f8fafc;
+                  color: #4b5563;
+                  border-radius: 0 4px 4px 0;
                 }
-                a { color: #6366f1; text-decoration: none; }
-                a:hover { text-decoration: underline; }
-                li { margin: 4px 0; }
+                
+                /* 链接 */
+                a { 
+                  color: #6366f1; 
+                  text-decoration: none; 
+                  border-bottom: 1px solid transparent;
+                  transition: border-color 0.2s;
+                }
+                a:hover { 
+                  border-bottom-color: #6366f1;
+                }
+                
+                /* 列表 */
+                ul, ol { 
+                  margin: 1em 0; 
+                  padding-left: 2em;
+                }
+                li { 
+                  margin: 4px 0; 
+                  line-height: 1.6;
+                }
+                
+                /* 表格 */
+                table {
+                  border-collapse: collapse;
+                  width: 100%;
+                  margin: 1em 0;
+                  background: white;
+                  border-radius: 8px;
+                  overflow: hidden;
+                  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                }
+                
+                th, td {
+                  border: 1px solid #e5e7eb;
+                  padding: 12px 16px;
+                  text-align: left;
+                }
+                
+                th {
+                  background: #f9fafb;
+                  font-weight: 600;
+                  color: #374151;
+                }
+                
+                tr:nth-child(even) td {
+                  background: #f9fafb;
+                }
+                
+                tr:hover td {
+                  background: #f3f4f6;
+                }
+                
+                /* 分割线 */
+                hr {
+                  border: none;
+                  height: 2px;
+                  background: linear-gradient(to right, #e5e7eb, #d1d5db, #e5e7eb);
+                  margin: 2em 0;
+                  border-radius: 1px;
+                }
+                
+                /* 图片 */
+                img {
+                  max-width: 100%;
+                  height: auto;
+                  border-radius: 8px;
+                  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                  margin: 1em 0;
+                }
+                
+                /* 任务列表 */
+                input[type="checkbox"] {
+                  margin-right: 8px;
+                }
               </style>
             </head>
             <body>
-              ${code ? markdownToHtml(code) : '<p style="text-align: center; color: #666;">请在左侧输入 Markdown 内容</p>'}
+              ${markdownHtml}
             </body>
             </html>
           `;
