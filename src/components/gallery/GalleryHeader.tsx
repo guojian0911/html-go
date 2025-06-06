@@ -9,37 +9,38 @@ const GalleryHeader = () => {
   const navigate = useNavigate();
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+          {/* Logo with enhanced styling and accessibility */}
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
               <Code2 className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">HTML-Go</h1>
-              <p className="text-xs text-gray-500">多格式渲染分享平台</p>
+              <h1 className="text-xl font-bold text-gray-900 font-display">HTML-Go</h1>
+              <p className="text-xs text-gray-600">多格式渲染分享平台</p>
             </div>
           </div>
 
-          {/* 右侧操作区 */}
+          {/* Right side actions with consistent styling */}
           <div className="flex items-center space-x-4">
-            {/* 快速创建按钮 - 只显示加号 */}
+            {/* Create button with improved accessibility */}
             <Button 
               onClick={() => navigate('/editor')}
-              className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 p-0 flex items-center justify-center"
+              className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 transition-all duration-200 p-0 flex items-center justify-center focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
               size="icon"
+              aria-label="创建新项目"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-5 h-5 text-white" />
             </Button>
 
-            {/* 用户头像/登录按钮 */}
+            {/* User avatar with enhanced styling */}
             <div className="flex items-center">
-              <Avatar className="w-8 h-8 cursor-pointer">
-                <AvatarImage src="" />
-                <AvatarFallback className="bg-gray-200">
-                  <User className="w-4 h-4 text-gray-600" />
+              <Avatar className="w-8 h-8 cursor-pointer hover:ring-2 hover:ring-gray-300 transition-all duration-200 focus:ring-2 focus:ring-brand-primary focus:ring-offset-2" tabIndex={0}>
+                <AvatarImage src="" alt="用户头像" />
+                <AvatarFallback className="bg-gray-200 hover:bg-gray-300 transition-colors duration-200">
+                  <User className="w-4 h-4 text-gray-700" />
                 </AvatarFallback>
               </Avatar>
             </div>

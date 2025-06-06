@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GalleryHeader from '@/components/gallery/GalleryHeader';
@@ -12,7 +11,7 @@ const Gallery = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFormat, setSelectedFormat] = useState<string>('all');
 
-  // 模拟数据 - 实际项目中这里会从数据库获取
+  // Mock data with enhanced accessibility considerations
   const mockWorks = [
     {
       id: '1',
@@ -75,7 +74,7 @@ const Gallery = () => {
     <div className="min-h-screen bg-gray-50">
       <GalleryHeader />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <HeroSection 
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
