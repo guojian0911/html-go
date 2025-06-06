@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -24,10 +23,56 @@ const Auth = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state change:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // 如果用户刚登录，确保档案存在
+        if (session?.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+          setTimeout(async () => {
+            try {
+              // 检查用户档案是否存在
+              const { data: existingProfile, error: checkError } = await supabase
+                .from('render_profiles')
+                .select('id')
+                .eq('id', session.user.id)
+                .maybeSingle();
+
+              if (checkError) {
+                console.error('Error checking user profile:', checkError);
+                return;
+              }
+
+              // 如果档案不存在，创建一个
+              if (!existingProfile) {
+                console.log('Creating user profile for:', session.user.id);
+                
+                const displayName = session.user.user_metadata?.display_name || 
+                                  session.user.user_metadata?.full_name || 
+                                  session.user.email?.split('@')[0] || 
+                                  '用户';
+
+                const { error: profileError } = await supabase
+                  .from('render_profiles')
+                  .insert({
+                    id: session.user.id,
+                    display_name: displayName
+                  });
+
+                if (profileError) {
+                  console.error('Error creating user profile:', profileError);
+                } else {
+                  console.log('User profile created successfully');
+                }
+              } else {
+                console.log('User profile already exists');
+              }
+            } catch (error) {
+              console.error('Error handling user profile:', error);
+            }
+          }, 100);
+        }
         
         if (session?.user) {
           navigate('/');
@@ -92,6 +137,7 @@ const Auth = () => {
           emailRedirectTo: redirectUrl,
           data: {
             display_name: displayName,
+            full_name: displayName,
           }
         }
       });

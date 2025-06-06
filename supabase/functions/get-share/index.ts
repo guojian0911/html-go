@@ -1,18 +1,10 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-// MySQL 连接配置
-const MYSQL_CONFIG = {
-  hostname: "rm-2zeci3z6ogyl025l59o.mysql.rds.aliyuncs.com",
-  username: "chip",
-  password: "chip@2024",
-  db: "html-go",
-  port: 3306,
 }
 
 serve(async (req) => {
@@ -22,115 +14,108 @@ serve(async (req) => {
   }
 
   try {
-    let shareId: string;
-    let password: string | null = null;
+    const { id, password } = await req.json();
 
-    // 支持 GET 和 POST 请求
-    if (req.method === 'GET') {
-      const url = new URL(req.url);
-      shareId = url.searchParams.get('id') || '';
-      password = url.searchParams.get('password');
-    } else if (req.method === 'POST') {
-      const body = await req.json();
-      shareId = body.id || '';
-      password = body.password || null;
-    } else {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Method not allowed' }),
-        { 
-          status: 405,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+    console.log('Getting share with ID:', id);
+
+    if (!id) {
+      throw new Error('Share ID is required');
     }
 
-    if (!shareId) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Share ID is required' }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+    // 创建 Supabase 客户端
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // 查询分享数据
+    const { data, error } = await supabase
+      .from('render_pages')
+      .select('*')
+      .eq('id', id)
+      .eq('status', 'published')
+      .single();
+
+    if (error) {
+      console.error('Database error:', error);
+      throw new Error('Share not found');
     }
 
-    console.log('Getting share with ID:', shareId);
+    if (!data) {
+      throw new Error('Share not found');
+    }
 
-    // 创建 MySQL 连接
-    const mysql = await import('https://deno.land/x/mysql@v2.12.1/mod.ts');
-    const client = await new mysql.Client().connect(MYSQL_CONFIG);
-
-    try {
-      // 查询分享内容
-      const results = await client.execute(`
-        SELECT id, html_content, created_at, password, is_protected, code_type
-        FROM pages 
-        WHERE id = ?
-      `, [shareId]);
-
-      if (!results.rows || results.rows.length === 0) {
-        await client.close();
-        return new Response(
-          JSON.stringify({ success: false, error: 'Share not found' }),
-          { 
-            status: 404,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-
-      const page = results.rows[0];
-      console.log('Found share:', { id: page.id, type: page.code_type, protected: page.is_protected });
-
-      // 检查密码保护
-      if (page.is_protected && page.password !== password) {
-        await client.close();
+    // 检查是否需要密码
+    if (data.is_protected) {
+      if (!password) {
         return new Response(
           JSON.stringify({ 
             success: false, 
-            error: 'Password required',
-            requiresPassword: true 
+            requiresPassword: true,
+            error: 'Password required'
           }),
           { 
-            status: 401,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'application/json' 
+            } 
           }
         );
       }
 
-      await client.close();
-
-      return new Response(
-        JSON.stringify({ 
-          success: true,
-          data: {
-            id: page.id,
-            content: page.html_content,
-            createdAt: page.created_at,
-            codeType: page.code_type,
-            isProtected: Boolean(page.is_protected)
+      // 验证密码
+      if (data.password !== password) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Incorrect password'
+          }),
+          { 
+            status: 401,
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'application/json' 
+            } 
           }
-        }),
-        { 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          } 
-        }
-      );
-
-    } catch (dbError) {
-      console.error('Database error:', dbError);
-      await client.close();
-      throw dbError;
+        );
+      }
     }
+
+    // 更新查看次数
+    await supabase
+      .from('render_pages')
+      .update({ view_count: (data.view_count || 0) + 1 })
+      .eq('id', id);
+
+    // 返回数据
+    const shareData = {
+      id: data.id,
+      content: data.html_content,
+      createdAt: new Date(data.created_at).getTime(),
+      codeType: data.code_type,
+      isProtected: data.is_protected,
+      title: data.title,
+      description: data.description
+    };
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        data: shareData
+      }),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
+    );
 
   } catch (error) {
     console.error('Error getting share:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || 'Failed to get share' 
+        error: error.message || 'Failed to get share'
       }),
       { 
         status: 500,
