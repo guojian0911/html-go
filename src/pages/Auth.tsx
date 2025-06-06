@@ -25,6 +25,7 @@ const Auth = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state change:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -66,6 +67,7 @@ const Auth = () => {
         navigate('/');
       }
     } catch (error: any) {
+      console.error('Sign in error:', error);
       toast({
         title: "登录失败",
         description: error.message || "登录时发生错误",
@@ -103,6 +105,7 @@ const Auth = () => {
         });
       }
     } catch (error: any) {
+      console.error('Sign up error:', error);
       toast({
         title: "注册失败",
         description: error.message || "注册时发生错误",
@@ -116,18 +119,29 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('Attempting Google sign in...');
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}/auth`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
       
-      if (error) throw error;
+      console.log('Google OAuth response:', { data, error });
+      
+      if (error) {
+        console.error('Google OAuth error:', error);
+        throw error;
+      }
     } catch (error: any) {
+      console.error('Google sign in error:', error);
       toast({
         title: "Google登录失败",
-        description: error.message || "第三方登录时发生错误",
+        description: "请确保已在Supabase中正确配置Google OAuth。错误: " + (error.message || "未知错误"),
         variant: "destructive",
       });
       setIsLoading(false);
@@ -137,18 +151,25 @@ const Auth = () => {
   const handleGitHubSignIn = async () => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('Attempting GitHub sign in...');
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}/auth`,
         }
       });
       
-      if (error) throw error;
+      console.log('GitHub OAuth response:', { data, error });
+      
+      if (error) {
+        console.error('GitHub OAuth error:', error);
+        throw error;
+      }
     } catch (error: any) {
+      console.error('GitHub sign in error:', error);
       toast({
         title: "GitHub登录失败",
-        description: error.message || "第三方登录时发生错误",
+        description: "请确保已在Supabase中正确配置GitHub OAuth。错误: " + (error.message || "未知错误"),
         variant: "destructive",
       });
       setIsLoading(false);
