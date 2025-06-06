@@ -18,6 +18,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [activeTab, setActiveTab] = useState('signin');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -169,7 +170,7 @@ const Auth = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-8 pb-8">
-            <Tabs defaultValue="signin" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="signin">登录</TabsTrigger>
                 <TabsTrigger value="signup">注册</TabsTrigger>
@@ -273,7 +274,7 @@ const Auth = () => {
                   Don't have an account?{' '}
                   <button 
                     type="button"
-                    onClick={() => document.querySelector('[value="signup"]')?.click()}
+                    onClick={() => setActiveTab('signup')}
                     className="text-purple-600 hover:text-purple-700 font-medium"
                   >
                     Sign up
@@ -346,7 +347,7 @@ const Auth = () => {
                   已有账户？{' '}
                   <button 
                     type="button"
-                    onClick={() => document.querySelector('[value="signin"]')?.click()}
+                    onClick={() => setActiveTab('signin')}
                     className="text-purple-600 hover:text-purple-700 font-medium"
                   >
                     立即登录
