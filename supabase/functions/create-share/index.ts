@@ -58,16 +58,10 @@ serve(async (req) => {
       );
     }
 
-    // 生成唯一 ID
-    const shareId = generateId();
-    
-    console.log('Generated share ID:', shareId);
-
-    // 插入数据到 render_pages 表
+    // 插入数据到 render_pages 表，让 Supabase 自动生成 UUID
     const { data, error } = await supabase
       .from('render_pages')
       .insert({
-        id: shareId,
         user_id: userId,
         title: `${format.toUpperCase()} 分享`,
         description: `通过 HTML-Go 分享的 ${format} 内容`,
@@ -87,12 +81,12 @@ serve(async (req) => {
 
     console.log('Successfully created share:', data);
 
-    const shareUrl = `${req.headers.get('origin') || new URL(req.url).origin}/share/${shareId}`;
+    const shareUrl = `${req.headers.get('origin') || new URL(req.url).origin}/share/${data.id}`;
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        shareId,
+        shareId: data.id,
         shareUrl,
         data
       }),
@@ -121,12 +115,3 @@ serve(async (req) => {
     );
   }
 });
-
-function generateId(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < 12; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
