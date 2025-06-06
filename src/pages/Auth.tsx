@@ -244,7 +244,6 @@ const Auth = () => {
               </TabsList>
               
               <TabsContent value="signin" className="space-y-4">
-                {/* 第三方登录按钮 */}
                 <div className="space-y-3">
                   <Button
                     type="button"
