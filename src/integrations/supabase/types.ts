@@ -370,6 +370,84 @@ export type Database = {
           },
         ]
       }
+      render_pages: {
+        Row: {
+          code_type: string
+          created_at: string
+          description: string | null
+          html_content: string
+          id: string
+          is_protected: boolean
+          password: string | null
+          share_count: number
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+          view_count: number
+        }
+        Insert: {
+          code_type?: string
+          created_at?: string
+          description?: string | null
+          html_content: string
+          id?: string
+          is_protected?: boolean
+          password?: string | null
+          share_count?: number
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+          view_count?: number
+        }
+        Update: {
+          code_type?: string
+          created_at?: string
+          description?: string | null
+          html_content?: string
+          id?: string
+          is_protected?: boolean
+          password?: string | null
+          share_count?: number
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
+      render_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tutorials: {
         Row: {
           config: Json | null
