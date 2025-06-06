@@ -6,26 +6,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// 更彻底的 UTF-8MB4 字符清理函数
-function sanitizeForMySQL(text: string): string {
+// 更彻底的字符清理函数
+function sanitizeText(text: string): string {
   if (!text) return '';
   
-  // 移除所有 4 字节 UTF-8 字符（包括 emoji 和其他特殊字符）
+  // 移除所有可能有问题的字符，只保留基本的 ASCII 和基本 UTF-8 字符
   return text
-    // 移除 emoji 表情符号
-    .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // 表情符号
-    .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // 杂项符号和象形文字
-    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // 交通和地图符号
-    .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '') // 旗帜
-    .replace(/[\u{2600}-\u{26FF}]/gu, '')   // 杂项符号
-    .replace(/[\u{2700}-\u{27BF}]/gu, '')   // 装饰符号
-    .replace(/[\u{FE00}-\u{FE0F}]/gu, '')   // 变体选择器
-    .replace(/[\u{1F900}-\u{1F9FF}]/gu, '') // 补充符号和象形文字
-    .replace(/[\u{1FA70}-\u{1FAFF}]/gu, '') // 扩展的象形文字-A
-    // 移除其他可能的 4 字节字符
-    .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '') // 代理对
-    // 只保留基本的 UTF-8 字符（1-3 字节）
-    .replace(/[^\u0000-\uFFFF]/g, '');
+    // 移除所有 emoji 和特殊符号
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '') // 所有补充符号区域
+    .replace(/[\u{E000}-\u{F8FF}]/gu, '')   // 私用区域
+    .replace(/[\u{20000}-\u{2FFFF}]/gu, '') // CJK 扩展区域
+    .replace(/[\u{30000}-\u{3FFFF}]/gu, '') // 更多扩展区域
+    // 移除代理对
+    .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '')
+    // 移除其他高位字符
+    .replace(/[^\u0000-\uD7FF\uE000-\uFFFF]/g, '')
+    // 确保字符串是有效的
+    .normalize('NFC');
 }
 
 serve(async (req) => {
@@ -46,10 +43,9 @@ serve(async (req) => {
     }
 
     // 清理代码中的问题字符
-    const sanitizedCode = sanitizeForMySQL(code);
+    const sanitizedCode = sanitizeText(code);
     console.log('Sanitized code length:', sanitizedCode.length);
     
-    // 检查清理后的代码是否为空
     if (!sanitizedCode.trim()) {
       throw new Error('Content becomes empty after sanitization');
     }
@@ -63,30 +59,58 @@ serve(async (req) => {
     
     console.log('Generated share ID:', shareId);
 
-    // 获取 MySQL 配置
+    // 获取 MySQL 配置 - 确保使用正确的数据库
     const MYSQL_CONFIG = {
       hostname: Deno.env.get('MYSQL_HOST') || "rm-2zeci3z6ogyl025l59o.mysql.rds.aliyuncs.com",
       username: Deno.env.get('MYSQL_USER') || "chip", 
       password: Deno.env.get('MYSQL_PASSWORD') || "chip@2024",
-      db: Deno.env.get('MYSQL_DATABASE') || "html-go",
+      db: Deno.env.get('MYSQL_DATABASE') || "html-go", // 确保使用正确的数据库名
       port: parseInt(Deno.env.get('MYSQL_PORT') || "3306"),
     };
 
-    console.log('Connecting to MySQL...');
+    console.log('MySQL config:', { 
+      hostname: MYSQL_CONFIG.hostname,
+      username: MYSQL_CONFIG.username,
+      db: MYSQL_CONFIG.db,
+      port: MYSQL_CONFIG.port
+    });
 
     // 创建 MySQL 连接
     let client;
     try {
       const mysql = await import('https://deno.land/x/mysql@v2.12.1/mod.ts');
       client = await new mysql.Client().connect(MYSQL_CONFIG);
-      console.log('MySQL connection established');
+      console.log('MySQL connection established to database:', MYSQL_CONFIG.db);
     } catch (connectionError) {
       console.error('MySQL connection failed:', connectionError);
       throw new Error(`Database connection failed: ${connectionError.message}`);
     }
 
     try {
-      // 使用参数化查询插入数据到 pages 表
+      // 首先检查表是否存在
+      console.log('Checking if pages table exists...');
+      const checkTableResult = await client.execute("SHOW TABLES LIKE 'pages'");
+      console.log('Table check result:', checkTableResult);
+
+      if (!checkTableResult || checkTableResult.length === 0) {
+        console.log('Pages table does not exist, creating it...');
+        
+        // 创建表，使用 utf8mb3 字符集避免 4 字节字符问题
+        await client.execute(`
+          CREATE TABLE IF NOT EXISTS pages (
+            id VARCHAR(12) PRIMARY KEY,
+            html_content LONGTEXT CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci,
+            created_at BIGINT,
+            password VARCHAR(255),
+            is_protected TINYINT(1) DEFAULT 0,
+            code_type VARCHAR(50) DEFAULT 'html'
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci
+        `);
+        
+        console.log('Pages table created successfully');
+      }
+
+      // 插入数据
       console.log('Inserting data into pages table...');
       const insertResult = await client.execute(`
         INSERT INTO pages (id, html_content, created_at, password, is_protected, code_type)
@@ -134,9 +158,11 @@ serve(async (req) => {
       // 提供更详细的错误信息
       let errorMessage = 'Database operation failed';
       if (dbError.message?.includes('Incorrect string value')) {
-        errorMessage = 'Content contains unsupported characters';
+        errorMessage = 'Content contains unsupported characters after sanitization';
       } else if (dbError.message?.includes('Connection')) {
         errorMessage = 'Database connection error';
+      } else if (dbError.message?.includes("doesn't exist")) {
+        errorMessage = 'Database table does not exist';
       } else {
         errorMessage = dbError.message || 'Unknown database error';
       }
