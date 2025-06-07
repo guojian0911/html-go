@@ -31,14 +31,14 @@ const PasswordSection: React.FC<PasswordSectionProps> = ({
           disabled={isGenerating || Boolean(shareUrl)}
         />
         <label htmlFor="usePassword" className="text-sm font-medium text-gray-700">
-          使用密码保护
+          发布时使用密码保护
         </label>
       </div>
       
       {usePassword && (
         <Input
           type="password"
-          placeholder="设置访问密码"
+          placeholder="设置发布后的访问密码"
           value={password}
           onChange={(e) => onPasswordChange(e.target.value)}
           disabled={isGenerating || Boolean(shareUrl)}

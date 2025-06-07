@@ -4,6 +4,7 @@ import { CodeFormat } from '../pages/Index';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import ShareDialogHeader from './share/ShareDialogHeader';
 import CodeInfoCard from './share/CodeInfoCard';
 import PasswordSection from './share/PasswordSection';
@@ -16,14 +17,17 @@ interface ShareDialogProps {
   onClose: () => void;
   code: string;
   format: CodeFormat;
+  existingPageId?: string | null;
 }
 
-const ShareDialog: React.FC<ShareDialogProps> = ({ 
-  isOpen, 
-  onClose, 
-  code, 
-  format 
+const ShareDialog: React.FC<ShareDialogProps> = ({
+  isOpen,
+  onClose,
+  code,
+  format,
+  existingPageId
 }) => {
+  const { user } = useAuth();
   const [shareUrl, setShareUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -33,40 +37,86 @@ const ShareDialog: React.FC<ShareDialogProps> = ({
 
   const generateShareUrl = async () => {
     setIsGenerating(true);
-    
+
     try {
-      console.log('Creating share with format:', format);
+      console.log('Saving draft with format:', format);
+
+      if (!user) {
+        throw new Error('用户未登录');
+      }
+
+      // 保存或更新草稿
+      let data, error;
       
-      const { data, error } = await supabase.functions.invoke('create-share', {
-        body: {
-          code,
-          format,
-          password: usePassword ? password : null
-        }
-      });
+      if (existingPageId) {
+        // 更新现有草稿
+        const result = await supabase
+          .from('render_pages')
+          .update({
+            title: `${format.toUpperCase()} 草稿`,
+            description: `通过 HTML-Go 创建的 ${format} 草稿`,
+            html_content: code,
+            code_type: format,
+            is_protected: !!usePassword,
+            password: usePassword ? password : null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingPageId)
+          .eq('user_id', user.id)
+          .select()
+          .single();
+        
+        data = result.data;
+        error = result.error;
+      } else {
+        // 创建新草稿
+        const result = await supabase
+          .from('render_pages')
+          .insert({
+            user_id: user.id,
+            title: `${format.toUpperCase()} 草稿`,
+            description: `通过 HTML-Go 创建的 ${format} 草稿`,
+            html_content: code,
+            code_type: format,
+            status: 'draft', // 明确设置为草稿状态
+            is_protected: !!usePassword,
+            password: usePassword ? password : null
+          })
+          .select()
+          .single();
+        
+        data = result.data;
+        error = result.error;
+      }
 
       if (error) {
-        console.error('Error creating share:', error);
-        throw new Error(error.message || 'Failed to create share');
+        console.error('Database error:', error);
+        throw new Error(`保存草稿失败: ${error.message}`);
       }
 
-      if (data?.success) {
-        setShareId(data.shareId);
-        setShareUrl(data.shareUrl);
-        
-        toast({
-          title: "分享链接已生成",
-          description: "你的代码已保存，可以分享给任何人查看！",
-        });
-      } else {
-        throw new Error(data?.error || 'Failed to create share');
+      console.log('Successfully saved draft:', data);
+
+      // 验证保存的状态
+      if (data.status !== 'draft') {
+        console.warn('Warning: Draft was not saved with draft status:', data.status);
       }
 
-    } catch (error) {
-      console.error('Error generating share URL:', error);
+      setShareId(data.id);
+      setShareUrl(`/profile?tab=draft`); // 设置为草稿箱链接
+
       toast({
-        title: "生成失败",
-        description: error.message || "无法生成分享链接，请重试",
+        title: existingPageId ? "草稿已更新" : "草稿已保存",
+        description: existingPageId 
+          ? "你的草稿内容已成功更新！"
+          : "你的代码已保存到草稿箱，可以在个人资料中管理和发布！",
+      });
+
+    } catch (error: unknown) {
+      console.error('Error saving draft:', error);
+      const message = error instanceof Error ? error.message : "无法保存草稿，请重试";
+      toast({
+        title: "保存失败",
+        description: message,
         variant: "destructive",
       });
     } finally {

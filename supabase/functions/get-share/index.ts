@@ -27,12 +27,11 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 查询分享数据
+    // 查询分享数据 - 支持草稿和已发布的预览
     const { data, error } = await supabase
       .from('render_pages')
       .select('*')
       .eq('id', id)
-      .eq('status', 'published')
       .single();
 
     if (error) {

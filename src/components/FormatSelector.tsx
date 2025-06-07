@@ -6,11 +6,13 @@ import { Code, FileText, Image, GitBranch } from 'lucide-react';
 interface FormatSelectorProps {
   currentFormat: CodeFormat;
   onFormatChange: (format: CodeFormat) => void;
+  disabled?: boolean;
 }
 
 const FormatSelector: React.FC<FormatSelectorProps> = ({ 
   currentFormat, 
-  onFormatChange 
+  onFormatChange,
+  disabled = false
 }) => {
   const formats = [
     {
@@ -57,12 +59,15 @@ const FormatSelector: React.FC<FormatSelectorProps> = ({
           return (
             <button
               key={format.id}
-              onClick={() => onFormatChange(format.id)}
+              onClick={() => !disabled && onFormatChange(format.id)}
+              disabled={disabled && !isActive}
               className={`
                 p-3 rounded-lg border-2 transition-all duration-200 text-left
-                ${isActive 
-                  ? 'border-brand-primary bg-brand-primary/5 shadow-brand-md' 
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                ${disabled && !isActive 
+                  ? 'border-gray-200 bg-gray-100 opacity-50 cursor-not-allowed'
+                  : isActive 
+                    ? 'border-brand-primary bg-brand-primary/5 shadow-brand-md' 
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 cursor-pointer'
                 }
               `}
             >
@@ -97,15 +102,20 @@ const FormatSelector: React.FC<FormatSelectorProps> = ({
       </div>
       
       {/* 快捷提示 */}
-      <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+      <div className={`mt-4 p-3 rounded-lg border ${disabled ? 'bg-orange-50 border-orange-200' : 'bg-blue-50 border-blue-200'}`}>
         <div className="flex items-start space-x-2">
-          <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
-            <span className="text-white text-xs font-bold">!</span>
+          <div className={`w-4 h-4 rounded-full flex items-center justify-center mt-0.5 ${disabled ? 'bg-orange-500' : 'bg-blue-500'}`}>
+            <span className="text-white text-xs font-bold">{disabled ? '🔒' : '!'}</span>
           </div>
           <div>
-            <p className="text-sm text-blue-800 font-medium">快捷提示</p>
-            <p className="text-xs text-blue-600 mt-1">
-              切换格式时会自动加载示例代码，帮你快速上手！
+            <p className={`text-sm font-medium ${disabled ? 'text-orange-800' : 'text-blue-800'}`}>
+              {disabled ? '编辑模式' : '快捷提示'}
+            </p>
+            <p className={`text-xs mt-1 ${disabled ? 'text-orange-600' : 'text-blue-600'}`}>
+              {disabled 
+                ? '正在编辑现有作品，格式已锁定，无法切换到其他格式'
+                : '切换格式时会自动加载示例代码，帮你快速上手！'
+              }
             </p>
           </div>
         </div>

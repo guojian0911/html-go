@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -14,14 +13,13 @@ serve(async (req) => {
   }
 
   try {
-    const { code, format, password } = await req.json();
+    const { pageId } = await req.json();
 
-    console.log('Creating share with format:', format);
-    console.log('Code length:', code?.length || 0);
+    console.log('Publishing draft with pageId:', pageId);
 
     // 验证输入
-    if (!code || !format) {
-      throw new Error('Missing required fields: code and format');
+    if (!pageId) {
+      throw new Error('Missing required field: pageId');
     }
 
     // 获取认证用户信息
@@ -58,36 +56,71 @@ serve(async (req) => {
       );
     }
 
-    // 插入数据到 render_pages 表，保存为草稿
+    // 首先验证页面是否存在且属于当前用户
+    const { data: existingPage, error: fetchError } = await supabase
+      .from('render_pages')
+      .select('*')
+      .eq('id', pageId)
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError || !existingPage) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Page not found or access denied' 
+        }),
+        { 
+          status: 404,
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
+    }
+
+    // 检查页面是否已经是发布状态
+    if (existingPage.status === 'published') {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Page is already published' 
+        }),
+        { 
+          status: 400,
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
+    }
+
+    // 更新页面状态为已发布
     const { data, error } = await supabase
       .from('render_pages')
-      .insert({
-        user_id: userId,
-        title: `${format.toUpperCase()} 草稿`,
-        description: `通过 HTML-Go 创建的 ${format} 草稿`,
-        html_content: code,
-        code_type: format,
-        status: 'draft',
-        is_protected: !!password,
-        password: password || null
+      .update({
+        status: 'published',
+        title: existingPage.title.replace('草稿', '作品'), // 更新标题
+        updated_at: new Date().toISOString()
       })
+      .eq('id', pageId)
+      .eq('user_id', userId)
       .select()
       .single();
 
     if (error) {
       console.error('Database error:', error);
-      throw new Error(`Failed to save share: ${error.message}`);
+      throw new Error(`Failed to publish page: ${error.message}`);
     }
 
-    console.log('Successfully created share:', data);
-
-    const shareUrl = `${req.headers.get('origin') || new URL(req.url).origin}/share/${data.id}`;
+    console.log('Successfully published page:', data);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        shareId: data.id,
-        shareUrl,
+        message: 'Page published successfully',
         data
       }),
       { 
@@ -99,11 +132,11 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error creating share:', error);
+    console.error('Error publishing page:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || 'Failed to create share'
+        error: error.message || 'Failed to publish page'
       }),
       { 
         status: 500,

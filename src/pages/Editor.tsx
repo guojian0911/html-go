@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
 import TopToolbar from '../components/TopToolbar';
 import CodeEditor from '../components/CodeEditor';
 import PreviewPanel from '../components/PreviewPanel';
 import FormatSelector from '../components/FormatSelector';
 import ShareDialog from '../components/ShareDialog';
+import ShareLinkDialog from '../components/ShareLinkDialog';
 
 export type CodeFormat = 'html' | 'markdown' | 'svg' | 'mermaid';
 
@@ -11,10 +16,70 @@ const Editor = () => {
   const [code, setCode] = useState('');
   const [format, setFormat] = useState<CodeFormat>('html');
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [isShareLinkDialogOpen, setIsShareLinkDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
+  const [pageTitle, setPageTitle] = useState('');
+  
+  const pageId = searchParams.get('id');
 
-  const handleFormatChange = (newFormat: CodeFormat) => {
-    setFormat(newFormat);
-    // 切换格式时提供示例代码
+  // 加载草稿数据
+  const loadDraftData = async (id: string) => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('render_pages')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading draft:', error);
+        toast({
+          title: "加载失败",
+          description: "无法加载草稿内容",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data) {
+        setCode(data.html_content);
+        setFormat(data.code_type as CodeFormat);
+        setPageTitle(data.title || '');
+        
+        toast({
+          title: "草稿已加载",
+          description: "草稿内容已载入编辑器",
+        });
+      }
+    } catch (err) {
+      console.error('Error loading draft:', err);
+      toast({
+        title: "加载失败",
+        description: "加载草稿时发生错误",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 页面加载时检查是否需要加载草稿
+  useEffect(() => {
+    if (pageId && user) {
+      loadDraftData(pageId);
+    } else if (!pageId) {
+      // 如果没有 ID 参数，设置默认的示例代码
+      setDefaultExampleCode();
+    }
+  }, [pageId, user]);
+
+  const setDefaultExampleCode = () => {
     const examples = {
       html: `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -63,7 +128,68 @@ const Editor = () => {
     </div>
 </body>
 </html>`,
-      markdown: `# Welcome to HTML-Go! 🚀
+      markdown: `# Welcome to HTML-Go! 🚀`,
+      svg: `<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">...</svg>`,
+      mermaid: `graph TD\n    A[HTML-Go] --> B[开始编辑]`
+    };
+    setCode(examples[format]);
+  };
+
+  const handleFormatChange = (newFormat: CodeFormat) => {
+    setFormat(newFormat);
+    
+    // 只有在创建新内容时（没有 pageId）才显示示例代码
+    // 如果正在编辑现有草稿，则保持当前代码不变
+    if (!pageId) {
+      const examples = {
+        html: `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML 示例</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .highlight {
+            background: linear-gradient(120deg, #a855f7 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>欢迎使用 <span class="highlight">HTML-Go</span>!</h1>
+    <div class="card">
+        <h2>🚀 特性介绍</h2>
+        <ul>
+            <li>支持多种代码格式</li>
+            <li>实时预览渲染效果</li>
+            <li>一键生成分享链接</li>
+            <li>现代化的用户界面</li>
+        </ul>
+    </div>
+    <div class="card">
+        <p>在左侧编辑器中输入你的代码，右侧将实时显示渲染效果。</p>
+        <button onclick="alert('Hello from HTML-Go!')" style="background: #6366f1; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">点击测试</button>
+    </div>
+</body>
+</html>`,
+        markdown: `# Welcome to HTML-Go! 🚀
 
 HTML-Go 是一个现代化的多格式渲染分享平台，让你轻松预览和分享你的代码作品。
 
@@ -114,7 +240,7 @@ console.log(greet('Developer'));
 | Markdown 解析 | ✅ | 标准语法 |
 | SVG 显示 | ✅ | 矢量图形 |
 | Mermaid 图表 | ✅ | 流程图等 |`,
-      svg: `<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+        svg: `<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
@@ -152,7 +278,7 @@ console.log(greet('Developer'));
     <animate attributeName="d" values="M 50 250 Q 200 200 350 250;M 50 250 Q 200 180 350 250;M 50 250 Q 200 200 350 250" dur="5s" repeatCount="indefinite"/>
   </path>
 </svg>`,
-      mermaid: `graph TD
+        mermaid: `graph TD
     A[HTML-Go 平台] --> B{选择格式}
     B -->|HTML| C[HTML 编辑器]
     B -->|Markdown| D[Markdown 编辑器]
@@ -177,29 +303,39 @@ console.log(greet('Developer'));
     style G fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff
     style J fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff
     style M fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#fff`
-    };
-    
-    setCode(examples[newFormat]);
+      };
+      
+      setCode(examples[newFormat]);
+    }
   };
 
   const handleShare = () => {
     setIsShareDialogOpen(true);
   };
 
+  const handleShareLink = () => {
+    setIsShareLinkDialogOpen(true);
+  };
+
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* 顶部工具栏 */}
-      <TopToolbar onShare={handleShare} />
+      <TopToolbar 
+        onShare={handleShare} 
+        onShareLink={handleShareLink}
+        showShareLink={!!pageId}
+      />
       
       {/* 主要内容区域 */}
       <div className="flex-1 flex overflow-hidden">
         {/* 左侧编辑器 */}
         <div className="w-1/2 flex flex-col bg-white border-r border-gray-200 overflow-hidden">
           {/* 格式选择器 */}
-          <div className="border-b border-gray-200 p-4 flex-shrink-0">
+                    <div className="border-b border-gray-200 p-4 flex-shrink-0">
             <FormatSelector 
-              currentFormat={format} 
-              onFormatChange={handleFormatChange} 
+              currentFormat={format}
+              onFormatChange={handleFormatChange}
+              disabled={!!pageId}
             />
           </div>
           
@@ -228,7 +364,19 @@ console.log(greet('Developer'));
         onClose={() => setIsShareDialogOpen(false)}
         code={code}
         format={format}
+        existingPageId={pageId}
       />
+
+      {/* 分享链接弹框 */}
+      {pageId && (
+        <ShareLinkDialog
+          isOpen={isShareLinkDialogOpen}
+          onClose={() => setIsShareLinkDialogOpen(false)}
+          pageId={pageId}
+          title={pageTitle || `${format.toUpperCase()} 作品`}
+          codeType={format}
+        />
+      )}
     </div>
   );
 };

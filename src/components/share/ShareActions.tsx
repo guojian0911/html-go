@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Download, QrCode } from 'lucide-react';
+import { FolderOpen, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import { CodeFormat } from '../../pages/Index';
 
 interface ShareActionsProps {
@@ -18,57 +18,35 @@ const ShareActions: React.FC<ShareActionsProps> = ({
   code,
   format
 }) => {
-  const downloadCode = () => {
-    const extensions = {
-      html: 'html',
-      markdown: 'md',
-      svg: 'svg',
-      mermaid: 'mmd'
-    };
-    
-    const blob = new Blob([code], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `html-go-${shareId || 'code'}.${extensions[format]}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "文件已下载",
-      description: `${format.toUpperCase()} 文件已保存到你的设备`,
-    });
+  const navigate = useNavigate();
+
+  const goToDrafts = () => {
+    navigate('/profile?tab=draft');
   };
 
-  const showQrCode = () => {
-    toast({
-      title: "二维码功能",
-      description: "二维码分享功能开发中...",
-    });
+  const continueEditing = () => {
+    navigate('/editor');
   };
 
   return (
     <div className="grid grid-cols-2 gap-3">
       <Button
-        onClick={downloadCode}
+        onClick={goToDrafts}
         variant="outline"
         className="btn-secondary"
         disabled={!shareUrl}
       >
-        <Download className="w-4 h-4 mr-2" />
-        下载文件
+        <FolderOpen className="w-4 h-4 mr-2" />
+        查看草稿箱
       </Button>
-      
+
       <Button
-        onClick={showQrCode}
+        onClick={continueEditing}
         variant="outline"
         className="btn-secondary"
-        disabled={!shareUrl}
       >
-        <QrCode className="w-4 h-4 mr-2" />
-        二维码
+        <Edit className="w-4 h-4 mr-2" />
+        继续编辑
       </Button>
     </div>
   );

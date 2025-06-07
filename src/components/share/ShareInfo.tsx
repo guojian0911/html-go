@@ -13,10 +13,10 @@ const ShareInfo: React.FC<ShareInfoProps> = ({ usePassword }) => {
           <span className="text-white text-xs font-bold">i</span>
         </div>
         <div>
-          <p className="text-sm text-blue-800 font-medium">分享说明</p>
+          <p className="text-sm text-blue-800 font-medium">草稿说明</p>
           <p className="text-xs text-blue-600 mt-1">
-            分享链接包含完整的代码和预览效果，{usePassword ? '需要密码才能' : '任何人都可以通过链接'}查看。
-            代码将永久保存在服务器上。
+            代码已保存到你的个人草稿箱。你可以在个人资料页面中管理草稿，编辑内容或发布为公开作品。
+            {usePassword ? '设置了密码保护，发布后需要密码才能查看。' : ''}
           </p>
         </div>
       </div>

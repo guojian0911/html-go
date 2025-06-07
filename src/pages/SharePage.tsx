@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Lock, Download, Copy, Check } from 'lucide-react';
@@ -18,6 +18,8 @@ interface ShareData {
 
 const SharePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const isPreviewMode = searchParams.get('preview') === 'true';
   const [shareData, setShareData] = useState<ShareData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,31 +49,52 @@ const SharePage: React.FC = () => {
     try {
       console.log('Fetching share data for ID:', id);
       
-      const requestBody: any = { id };
-      if (inputPassword) {
-        requestBody.password = inputPassword;
-      }
+      // 直接从数据库获取数据，避免 Edge Function 问题
+      const { data: pageData, error: dbError } = await supabase
+        .from('render_pages')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-      const { data, error: functionError } = await supabase.functions.invoke('get-share', {
-        body: requestBody
-      });
-
-      if (functionError) {
-        console.error('Supabase function error:', functionError);
-        throw new Error(functionError.message || '调用分享服务失败');
-      }
-
-      if (!data.success) {
-        if (data.requiresPassword) {
-          setRequiresPassword(true);
-          setError('需要密码访问此分享');
-        } else {
-          setError(data.error || '无法加载分享内容');
-        }
+      if (dbError || !pageData) {
+        console.error('Database error:', dbError);
+        setError('找不到指定的分享内容');
         return;
       }
 
-      setShareData(data.data);
+      // 检查是否需要密码
+      if (pageData.is_protected) {
+        if (!inputPassword) {
+          setRequiresPassword(true);
+          setError('需要密码访问此分享');
+          return;
+        }
+
+        // 验证密码
+        if (pageData.password !== inputPassword) {
+          setError('密码错误');
+          return;
+        }
+      }
+
+      // 更新查看次数
+      await supabase
+        .from('render_pages')
+        .update({ view_count: (pageData.view_count || 0) + 1 })
+        .eq('id', id);
+
+      // 转换数据格式
+      const shareData = {
+        id: pageData.id,
+        content: pageData.html_content,
+        createdAt: new Date(pageData.created_at).getTime(),
+        codeType: pageData.code_type,
+        isProtected: pageData.is_protected,
+        title: pageData.title,
+        description: pageData.description
+      };
+
+      setShareData(shareData);
       setRequiresPassword(false);
 
     } catch (err) {
@@ -156,7 +179,7 @@ const SharePage: React.FC = () => {
         doc.close();
         break;
 
-      case 'markdown':
+      case 'markdown': {
         const markdownHtml = shareData.content ? marked(shareData.content) : '<p style="text-align: center; color: #666;">暂无内容</p>';
         
         const htmlContent = `
@@ -308,8 +331,9 @@ const SharePage: React.FC = () => {
         doc.write(htmlContent);
         doc.close();
         break;
+      }
 
-      case 'svg':
+      case 'svg': {
         const svgHtml = `
           <!DOCTYPE html>
           <html>
@@ -343,8 +367,9 @@ const SharePage: React.FC = () => {
         doc.write(svgHtml);
         doc.close();
         break;
+      }
 
-      case 'mermaid':
+      case 'mermaid': {
         const mermaidHtml = `
           <!DOCTYPE html>
           <html>
@@ -394,6 +419,7 @@ const SharePage: React.FC = () => {
         doc.write(mermaidHtml);
         doc.close();
         break;
+      }
     }
   };
 
@@ -480,6 +506,21 @@ const SharePage: React.FC = () => {
     );
   }
 
+  // 预览模式：只显示内容，不显示导航栏
+  if (isPreviewMode) {
+    return (
+      <div className="h-screen bg-white">
+        <iframe
+          ref={iframeRef}
+          className="w-full h-full border-0 bg-white"
+          title="分享内容预览"
+          sandbox="allow-scripts allow-same-origin"
+        />
+      </div>
+    );
+  }
+
+  // 正常模式：显示完整页面
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 头部工具栏 */}

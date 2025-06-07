@@ -18,11 +18,9 @@ const HeroSection = ({ searchQuery, onSearchChange }: HeroSectionProps) => {
           </span>
         </h1>
         <h2 className="text-4xl font-bold text-gray-900 mb-6">
-          多格式渲染的中心平台
+          高质量的创意作品，释放创意的全部潜能
         </h2>
-        <p className="text-xl text-gray-600 mb-12 leading-relaxed">
-          探索高质量的代码作品，提升您与开发者交流的效率，释放创意的全部潜能
-        </p>
+        
         
         {/* 大搜索框 */}
         <div className="relative max-w-2xl mx-auto">

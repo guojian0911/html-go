@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -16,7 +15,7 @@ serve(async (req) => {
   try {
     const { code, format, password } = await req.json();
 
-    console.log('Creating share with format:', format);
+    console.log('Saving draft with format:', format);
     console.log('Code length:', code?.length || 0);
 
     // 验证输入
@@ -58,7 +57,7 @@ serve(async (req) => {
       );
     }
 
-    // 插入数据到 render_pages 表，保存为草稿
+    // 插入数据到 render_pages 表，明确设置为草稿状态
     const { data, error } = await supabase
       .from('render_pages')
       .insert({
@@ -67,7 +66,7 @@ serve(async (req) => {
         description: `通过 HTML-Go 创建的 ${format} 草稿`,
         html_content: code,
         code_type: format,
-        status: 'draft',
+        status: 'draft', // 明确设置为草稿
         is_protected: !!password,
         password: password || null
       })
@@ -76,19 +75,26 @@ serve(async (req) => {
 
     if (error) {
       console.error('Database error:', error);
-      throw new Error(`Failed to save share: ${error.message}`);
+      throw new Error(`Failed to save draft: ${error.message}`);
     }
 
-    console.log('Successfully created share:', data);
+    console.log('Successfully created draft:', data);
 
-    const shareUrl = `${req.headers.get('origin') || new URL(req.url).origin}/share/${data.id}`;
+    // 验证保存的状态
+    if (data.status !== 'draft') {
+      console.error('Warning: Draft was not saved with draft status:', data.status);
+    }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        shareId: data.id,
-        shareUrl,
-        data
+        draftId: data.id,
+        message: 'Draft saved successfully',
+        data: {
+          id: data.id,
+          status: data.status,
+          title: data.title
+        }
       }),
       { 
         headers: { 
@@ -99,11 +105,11 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error creating share:', error);
+    console.error('Error saving draft:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || 'Failed to create share'
+        error: error.message || 'Failed to save draft'
       }),
       { 
         status: 500,

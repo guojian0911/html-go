@@ -1,14 +1,20 @@
 
 import React from 'react';
-import { Share2, FileText } from 'lucide-react';
+import { Save, FileText, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 interface TopToolbarProps {
   onShare: () => void;
+  onShareLink?: () => void;
+  showShareLink?: boolean;
 }
 
-const TopToolbar: React.FC<TopToolbarProps> = ({ onShare }) => {
+const TopToolbar: React.FC<TopToolbarProps> = ({ 
+  onShare, 
+  onShareLink, 
+  showShareLink = false 
+}) => {
   const navigate = useNavigate();
 
   return (
@@ -50,16 +56,28 @@ const TopToolbar: React.FC<TopToolbarProps> = ({ onShare }) => {
         </div>
       </div>
       
-      {/* Right side - Share button with enhanced styling */}
+      {/* Right side - Action buttons with enhanced styling */}
       <div className="flex items-center space-x-3">
-        <Button 
+        {showShareLink && onShareLink && (
+          <Button
+            onClick={onShareLink}
+            variant="outline"
+            className="font-medium px-4 py-2 rounded-lg transition-all duration-200 focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 shadow-sm hover:shadow-md"
+            size="sm"
+            aria-label="分享当前作品"
+          >
+            <Share2 className="w-4 h-4 mr-2" />
+            分享作品
+          </Button>
+        )}
+        <Button
           onClick={onShare}
           className="bg-brand-primary hover:bg-brand-primary-dark text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 shadow-sm hover:shadow-md"
           size="sm"
-          aria-label="分享当前作品"
+          aria-label="保存当前作品到草稿箱"
         >
-          <Share2 className="w-4 h-4 mr-2" />
-          分享
+          <Save className="w-4 h-4 mr-2" />
+          {showShareLink ? '保存草稿' : '保存草稿'}
         </Button>
       </div>
     </div>

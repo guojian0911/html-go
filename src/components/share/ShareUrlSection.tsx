@@ -19,38 +19,24 @@ const ShareUrlSection: React.FC<ShareUrlSectionProps> = ({
 }) => {
   return (
     <div className="space-y-3">
-      <label className="text-sm font-medium text-gray-700">
-        分享链接
-      </label>
-      
       {isGenerating ? (
         <div className="flex items-center justify-center p-8">
           <div className="text-center">
             <div className="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-            <p className="text-sm text-gray-600">正在生成分享链接...</p>
+            <p className="text-sm text-gray-600">正在保存草稿...</p>
           </div>
         </div>
       ) : (
-        <div className="flex space-x-2">
-          <Input
-            value={shareUrl}
-            readOnly
-            className="font-mono text-sm"
-            placeholder="生成中..."
-          />
-          <Button
-            onClick={onCopyToClipboard}
-            variant="outline"
-            size="sm"
-            className="flex-shrink-0"
-            disabled={!shareUrl}
-          >
-            {copied ? (
-              <Check className="w-4 h-4 text-green-600" />
-            ) : (
-              <Copy className="w-4 h-4" />
-            )}
-          </Button>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center space-x-2">
+            <Check className="w-5 h-5 text-green-600" />
+            <div>
+              <p className="text-sm font-medium text-green-800">草稿保存成功！</p>
+              <p className="text-xs text-green-600 mt-1">
+                你可以在个人资料页面的"草稿"标签中找到并管理这个草稿
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>
