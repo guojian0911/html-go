@@ -1,4 +1,3 @@
-
 /**
  * 页面相关的数据库操作服务
  * 负责处理 render_pages 表的所有 CRUD 操作
@@ -318,37 +317,30 @@ export class PagesService {
    */
   static async incrementViewCount(pageId: string): Promise<ServiceResponse<void>> {
     try {
-      // 使用 RPC 调用来原子性地增加浏览次数
-      const { error } = await supabase.rpc('increment_view_count', {
-        page_id: pageId
-      });
+      // 直接使用传统方法更新浏览次数
+      const { data: currentData, error: fetchError } = await supabase
+        .from('render_pages')
+        .select('view_count')
+        .eq('id', pageId)
+        .single();
 
-      if (error) {
-        // 如果 RPC 不存在，回退到传统方法
-        const { data: currentData, error: fetchError } = await supabase
-          .from('render_pages')
-          .select('view_count')
-          .eq('id', pageId)
-          .single();
+      if (fetchError) {
+        return {
+          success: false,
+          error: `获取当前浏览次数失败: ${fetchError.message}`
+        };
+      }
 
-        if (fetchError) {
-          return {
-            success: false,
-            error: `获取当前浏览次数失败: ${fetchError.message}`
-          };
-        }
+      const { error: updateError } = await supabase
+        .from('render_pages')
+        .update({ view_count: (currentData?.view_count || 0) + 1 })
+        .eq('id', pageId);
 
-        const { error: updateError } = await supabase
-          .from('render_pages')
-          .update({ view_count: (currentData?.view_count || 0) + 1 })
-          .eq('id', pageId);
-
-        if (updateError) {
-          return {
-            success: false,
-            error: `更新浏览次数失败: ${updateError.message}`
-          };
-        }
+      if (updateError) {
+        return {
+          success: false,
+          error: `更新浏览次数失败: ${updateError.message}`
+        };
       }
 
       return {
