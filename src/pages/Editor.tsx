@@ -23,6 +23,7 @@ const Editor = () => {
   const [pageTitle, setPageTitle] = useState('');
   
   const pageId = searchParams.get('id');
+  const isEditMode = !!pageId; // 如果有ID参数，则为编辑模式
 
   // 加载草稿数据
   const loadDraftData = async (id: string) => {
@@ -62,6 +63,47 @@ const Editor = () => {
       toast({
         title: "加载失败",
         description: "加载草稿时发生错误",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 保存现有草稿的更新
+  const saveExistingDraft = async () => {
+    if (!user || !pageId) return;
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from('render_pages')
+        .update({
+          html_content: code,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', pageId)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating draft:', error);
+        toast({
+          title: "保存失败",
+          description: "无法保存更改",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "保存成功",
+        description: "您的更改已保存",
+      });
+    } catch (err) {
+      console.error('Error saving draft:', err);
+      toast({
+        title: "保存失败",
+        description: "保存时发生错误",
         variant: "destructive",
       });
     } finally {
@@ -309,8 +351,14 @@ console.log(greet('Developer'));
     }
   };
 
-  const handleShare = () => {
-    setIsShareDialogOpen(true);
+  const handleSave = () => {
+    if (isEditMode) {
+      // 编辑模式：直接保存更新
+      saveExistingDraft();
+    } else {
+      // 创建模式：打开分享对话框
+      setIsShareDialogOpen(true);
+    }
   };
 
   const handleShareLink = () => {
@@ -321,9 +369,9 @@ console.log(greet('Developer'));
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* 顶部工具栏 */}
       <TopToolbar 
-        onShare={handleShare} 
+        onShare={handleSave}
         onShareLink={handleShareLink}
-        showShareLink={!!pageId}
+        showShareLink={isEditMode}
       />
       
       {/* 主要内容区域 */}
@@ -331,11 +379,11 @@ console.log(greet('Developer'));
         {/* 左侧编辑器 */}
         <div className="w-1/2 flex flex-col bg-white border-r border-gray-200 overflow-hidden">
           {/* 格式选择器 */}
-                    <div className="border-b border-gray-200 p-4 flex-shrink-0">
+          <div className="border-b border-gray-200 p-4 flex-shrink-0">
             <FormatSelector 
               currentFormat={format}
               onFormatChange={handleFormatChange}
-              disabled={!!pageId}
+              disabled={isEditMode}
             />
           </div>
           
@@ -358,14 +406,16 @@ console.log(greet('Developer'));
         </div>
       </div>
       
-      {/* 分享对话框 */}
-      <ShareDialog 
-        isOpen={isShareDialogOpen}
-        onClose={() => setIsShareDialogOpen(false)}
-        code={code}
-        format={format}
-        existingPageId={pageId}
-      />
+      {/* 分享对话框 - 只有在非编辑模式下才显示 */}
+      {!isEditMode && (
+        <ShareDialog 
+          isOpen={isShareDialogOpen}
+          onClose={() => setIsShareDialogOpen(false)}
+          code={code}
+          format={format}
+          existingPageId={pageId}
+        />
+      )}
 
       {/* 分享链接弹框 */}
       {pageId && (

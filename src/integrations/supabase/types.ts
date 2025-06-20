@@ -419,7 +419,15 @@ export type Database = {
           user_id?: string
           view_count?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_render_pages_user_id"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "render_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       render_profiles: {
         Row: {

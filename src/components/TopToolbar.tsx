@@ -2,7 +2,7 @@
 import React from 'react';
 import { Save, FileText, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 interface TopToolbarProps {
   onShare: () => void;
@@ -16,6 +16,9 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
   showShareLink = false 
 }) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const pageId = searchParams.get('id');
+  const isEditMode = !!pageId; // 如果有ID参数，则为编辑模式
 
   return (
     <div className="toolbar h-16 flex items-center justify-between px-6 bg-white border-b border-gray-200 shadow-sm">
@@ -74,10 +77,10 @@ const TopToolbar: React.FC<TopToolbarProps> = ({
           onClick={onShare}
           className="bg-brand-primary hover:bg-brand-primary-dark text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 shadow-sm hover:shadow-md"
           size="sm"
-          aria-label="保存当前作品到草稿箱"
+          aria-label={isEditMode ? "保存当前更改" : "保存当前作品到草稿箱"}
         >
           <Save className="w-4 h-4 mr-2" />
-          {showShareLink ? '保存草稿' : '保存草稿'}
+          {isEditMode ? '保存' : '保存草稿'}
         </Button>
       </div>
     </div>
