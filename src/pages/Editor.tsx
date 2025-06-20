@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { PagesService } from '@/services/PagesService';
 import TopToolbar from '../components/TopToolbar';
 import CodeEditor from '../components/CodeEditor';
 import PreviewPanel from '../components/PreviewPanel';
@@ -31,15 +31,10 @@ const Editor = () => {
     
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('render_pages')
-        .select('*')
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .single();
+      const result = await PagesService.getPageById(id, user.id);
 
-      if (error) {
-        console.error('Error loading draft:', error);
+      if (!result.success) {
+        console.error('Error loading draft:', result.error);
         toast({
           title: "加载失败",
           description: "无法加载草稿内容",
@@ -48,10 +43,10 @@ const Editor = () => {
         return;
       }
 
-      if (data) {
-        setCode(data.html_content);
-        setFormat(data.code_type as CodeFormat);
-        setPageTitle(data.title || '');
+      if (result.data) {
+        setCode(result.data.html_content);
+        setFormat(result.data.code_type as CodeFormat);
+        setPageTitle(result.data.title || '');
         
         toast({
           title: "草稿已加载",
@@ -76,17 +71,10 @@ const Editor = () => {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('render_pages')
-        .update({
-          html_content: code,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', pageId)
-        .eq('user_id', user.id);
+      const result = await PagesService.updatePageContent(pageId, user.id, code);
 
-      if (error) {
-        console.error('Error updating draft:', error);
+      if (!result.success) {
+        console.error('Error updating draft:', result.error);
         toast({
           title: "保存失败",
           description: "无法保存更改",
