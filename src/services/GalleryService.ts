@@ -23,7 +23,9 @@ export class GalleryService {
         offset = 0 
       } = options;
 
-      // 构建优化的查询
+      console.log('开始获取已发布作品列表，使用优化查询...');
+
+      // 构建优化的查询 - 使用 JOIN 一次性获取所有数据
       let query = supabase
         .from('render_pages')
         .select(`
@@ -34,6 +36,7 @@ export class GalleryService {
           view_count,
           share_count,
           created_at,
+          user_id,
           render_profiles!inner(display_name)
         `, { count: 'exact' })
         .eq('status', 'published');
@@ -53,11 +56,14 @@ export class GalleryService {
         .range(offset, offset + limit - 1);
 
       if (error) {
+        console.error('获取作品列表查询失败:', error);
         return {
           success: false,
           error: `获取作品列表失败: ${error.message}`
         };
       }
+
+      console.log(`成功获取 ${data?.length || 0} 个作品，总数: ${count || 0}`);
 
       // 转换数据格式
       const formattedWorks: GalleryWork[] = (data || []).map(page => ({
@@ -83,6 +89,7 @@ export class GalleryService {
         }
       };
     } catch (error) {
+      console.error('获取作品列表时发生错误:', error);
       return {
         success: false,
         error: `获取作品列表时发生错误: ${error instanceof Error ? error.message : '未知错误'}`
@@ -97,6 +104,8 @@ export class GalleryService {
     limit: number = 10
   ): Promise<ServiceResponse<GalleryWork[]>> {
     try {
+      console.log('开始获取热门作品...');
+
       const { data, error } = await supabase
         .from('render_pages')
         .select(`
@@ -114,6 +123,7 @@ export class GalleryService {
         .limit(limit);
 
       if (error) {
+        console.error('获取热门作品查询失败:', error);
         return {
           success: false,
           error: `获取热门作品失败: ${error.message}`
@@ -132,11 +142,13 @@ export class GalleryService {
         thumbnail: this.generateThumbnail(page.code_type)
       }));
 
+      console.log(`成功获取 ${formattedWorks.length} 个热门作品`);
       return {
         success: true,
         data: formattedWorks
       };
     } catch (error) {
+      console.error('获取热门作品时发生错误:', error);
       return {
         success: false,
         error: `获取热门作品时发生错误: ${error instanceof Error ? error.message : '未知错误'}`
@@ -151,6 +163,8 @@ export class GalleryService {
     limit: number = 10
   ): Promise<ServiceResponse<GalleryWork[]>> {
     try {
+      console.log('开始获取最新作品...');
+
       const { data, error } = await supabase
         .from('render_pages')
         .select(`
@@ -168,6 +182,7 @@ export class GalleryService {
         .limit(limit);
 
       if (error) {
+        console.error('获取最新作品查询失败:', error);
         return {
           success: false,
           error: `获取最新作品失败: ${error.message}`
@@ -186,11 +201,13 @@ export class GalleryService {
         thumbnail: this.generateThumbnail(page.code_type)
       }));
 
+      console.log(`成功获取 ${formattedWorks.length} 个最新作品`);
       return {
         success: true,
         data: formattedWorks
       };
     } catch (error) {
+      console.error('获取最新作品时发生错误:', error);
       return {
         success: false,
         error: `获取最新作品时发生错误: ${error instanceof Error ? error.message : '未知错误'}`
